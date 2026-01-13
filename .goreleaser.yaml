@@ -20,17 +20,23 @@ builds:
     ldflags:
       - -s -w -H windowsgui
       - -X main.Version={{.Version}}
+    hooks:
+      # Build the Inno Setup installer after the binary is ready
+      post:
+        - '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion={{.Version}} Cntrl.iss'
 
 archives:
-  - id: archive
+  - id: portable
     format: zip
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}_portable"
     files:
       - LICENSE
       - README.md
-  - id: binary
-    format: binary
-    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+release:
+  extra_files:
+    - glob: ./dist/CntrlSetup.exe
+      name_template: "Cntrl_{{ .Version }}_{{ .Arch }}_installer.exe"
 
 checksum:
   name_template: "checksums.txt"

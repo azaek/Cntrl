@@ -2,10 +2,13 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Cntrl"
-#define MyAppVersion "0.0.23-beta"
+; MyAppVersion is passed via /DMyAppVersion on command line
+#ifndef MyAppVersion
+  #define MyAppVersion "0.0.0-dev"
+#endif
 #define MyAppPublisher "azaek"
 #define MyAppURL "https://github.com/azaek/cntrl"
-#define MyAppExeName "Cntrl.exe"
+#define MyAppExeName "cntrl.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.

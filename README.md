@@ -32,13 +32,16 @@ go install github.com/tc-hib/go-winres@latest
 
 #### 1. Build for Production (via Git Tag)
 
-GoReleaser uses your **Git Tag** as the version number.
+GoReleaser uses your **Git Tag** as the version number. It will generate both a **Portable EXE** and an **Interactive Installer**.
 
 ```powershell
 # 1. Tag your release
 git tag -a v0.0.23-beta -m "First beta release"
 
 # 2. Run GoReleaser (Builds and packages everything)
+# This will generate:
+# - cntrl_<version>_<arch>_installer.exe
+# - cntrl_<version>_<arch>_portable.zip
 goreleaser release --clean
 ```
 
