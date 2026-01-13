@@ -7,10 +7,12 @@ before:
     - go mod tidy
     # Clean stale resources to avoid conflicts
     - cmd /c "if exist cmd\cntrl\*.syso del cmd\cntrl\*.syso"
-    # Dynamically update winres.json with placeholders from the current tag
-    - powershell -Command "(Get-Content winres/winres.json) -replace 'PLACEHOLDER_FIXED_VERSION', '{{.Major}}.{{.Minor}}.{{.Patch}}.0' -replace 'PLACEHOLDER_STRING_VERSION', '{{.Version}}' | Set-Content winres/winres.json"
-    # Generate Windows resources (icons + updated version info)
-    - go-winres make --in winres/winres.json --out cmd/cntrl/
+    # Dynamically update winres.json into a temporary build file
+    - powershell -Command "(Get-Content winres/winres.json) -replace 'PLACEHOLDER_FIXED_VERSION', '{{.Major}}.{{.Minor}}.{{.Patch}}.0' -replace 'PLACEHOLDER_STRING_VERSION', '{{.Version}}' | Set-Content winres/winres_build.json"
+    # Generate Windows resources from the temporary file
+    - go-winres make --in winres/winres_build.json --out cmd/cntrl/cntrl
+    # Clean up the temporary file
+    - cmd /c "if exist winres\winres_build.json del winres\winres_build.json"
 
 builds:
   - env:

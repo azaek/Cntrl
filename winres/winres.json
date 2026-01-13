@@ -8,19 +8,19 @@
         "#1": {
             "0000": {
                 "Fixed": {
-                    "FileVersion": "0.0.28.0",
-                    "ProductVersion": "0.0.28.0"
+                    "FileVersion": "PLACEHOLDER_FIXED_VERSION",
+                    "ProductVersion": "PLACEHOLDER_FIXED_VERSION"
                 },
                 "Info": {
                     "0409": {
                         "CompanyName": "azaek",
                         "FileDescription": "Cntrl Remote Management Bridge",
-                        "FileVersion": "0.0.28-beta-snapshot",
+                        "FileVersion": "PLACEHOLDER_STRING_VERSION",
                         "InternalName": "Cntrl",
                         "LegalCopyright": "Copyright (c) 2026 azaek",
                         "OriginalFilename": "Cntrl.exe",
                         "ProductName": "Cntrl",
-                        "ProductVersion": "0.0.28-beta-snapshot"
+                        "ProductVersion": "PLACEHOLDER_STRING_VERSION"
                     }
                 }
             }
