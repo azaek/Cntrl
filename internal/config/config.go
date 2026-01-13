@@ -9,7 +9,7 @@ import (
 
 // AppName is the application name used for paths and service registration
 // This can be changed if the project is renamed
-const AppName = "go-pc-rem"
+const AppName = "Cntrl"
 
 // Config represents the application configuration
 type Config struct {

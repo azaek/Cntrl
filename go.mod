@@ -1,4 +1,4 @@
-module go-pc-rem
+module github.com/azaek/cntrl
 
 go 1.22
 

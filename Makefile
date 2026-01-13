@@ -1,15 +1,22 @@
-.PHONY: build clean install uninstall start stop status run tray
+.PHONY: build clean install uninstall start stop status run tray installer
 
 VERSION := 1.0.0
-BINARY := go-pc-rem.exe
+BINARY_DIR := bin
+BINARY := $(BINARY_DIR)\Cntrl.exe
 LDFLAGS := -ldflags="-s -w -H windowsgui -X main.Version=$(VERSION)"
 
 # Build the combined binary
 build:
-	go build $(LDFLAGS) -o $(BINARY) ./cmd/go-pc-rem
+	if not exist $(BINARY_DIR) mkdir $(BINARY_DIR)
+	go build $(LDFLAGS) -o $(BINARY) ./cmd/cntrl
+
+# Build the installer (requires Inno Setup)
+installer: build
+	"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" Cntrl.iss
 
 clean:
-	del /f $(BINARY) 2>nul || true
+	if exist bin rmdir /s /q bin
+	if exist dist rmdir /s /q dist
 
 install: build
 	$(BINARY) install
@@ -35,7 +42,7 @@ tray: build
 
 # Development helpers
 dev:
-	go run ./cmd/go-pc-rem run
+	go run ./cmd/cntrl run
 
 tidy:
 	go mod tidy

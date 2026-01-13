@@ -1,0 +1,16 @@
+# Binaries
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Config
+# We ignore the local config if the user accidentally creates one in root
+config.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
