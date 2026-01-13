@@ -22,11 +22,15 @@ builds:
       - -X main.Version={{.Version}}
 
 archives:
-  - format: zip
+  - id: archive
+    format: zip
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - LICENSE
       - README.md
+  - id: binary
+    format: binary
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
   name_template: "checksums.txt"
