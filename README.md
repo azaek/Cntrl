@@ -94,14 +94,6 @@ The configuration is stored in `%APPDATA%\Cntrl\config.yaml`.
 -   **App closed** = Everything stops
 -   **No hidden services** - What you see is what you get
 
-## Versioning 🏁
-
-To update the version for a new release, manually update:
-
--   **`Makefile`**: `VERSION` variable.
--   **`Cntrl.iss`**: `#define MyAppVersion`.
--   **`winres/winres.json`**: All version strings.
-
 ## Requirements
 
 -   Windows 10/11
