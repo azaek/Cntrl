@@ -36,7 +36,7 @@ archives:
 release:
   extra_files:
     - glob: ./dist/CntrlSetup.exe
-      name_template: "Cntrl_{{ .Version }}_{{ .Arch }}_installer.exe"
+      name_template: "Cntrl_{{ .Version }}_amd64_installer.exe"
 
 checksum:
   name_template: "checksums.txt"
