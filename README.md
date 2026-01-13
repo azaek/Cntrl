@@ -47,23 +47,43 @@ goreleaser release --clean
 If you want to build a binary quickly without tagging:
 
 ```powershell
+# Using GoReleaser (recommended)
 goreleaser build --snapshot --clean --single-target
+
+# Or via Standard Go (Manual)
+go-winres make --in winres/winres.json --out cmd/cntrl/
+go build -ldflags="-s -w -H windowsgui -X main.Version=0.0.23-beta" -o bin/Cntrl.exe ./cmd/cntrl
 ```
 
-The binary will be generated in `dist/cntrl_windows_amd64_v1/`.
+The binary will be generated in `dist/` (for GoReleaser) or `bin/` (for Manual).
+
+### Manual Installer (Optional)
+
+Requires [Inno Setup 6](https://jrsoftware.org/isdl.php).
+
+-   **Via GUI**: Right-click `Cntrl.iss` and select **Compile**.
+-   **Via CLI**: `iscc Cntrl.iss`
+
+## Versioning 🏁
+
+Cntrl uses **Git Tags** for official releases. For manual builds, update:
+
+-   **`Makefile`**: `VERSION` variable.
+-   **`Cntrl.iss`**: `#define MyAppVersion`.
+-   **`winres/winres.json`**: All version strings.
 
 The app appears in your system tray. Right-click to access the menu.
 
 ## Tray Menu
 
-| Option              | Description           |
-| ------------------- | --------------------- |
-| ● Running on port X | Status & Port info    |
-| Open Dashboard      | Open stats in browser |
-| Open Config         | Edit configuration    |
-| Features            | Toggle sub-menu       |
-| Run at Startup      | Toggle auto-start     |
-| Exit                | Stop and exit         |
+| Option              | Description            |
+| ------------------- | ---------------------- |
+| ● Running on port X | Status & Port info     |
+| View on GitHub      | Open project on GitHub |
+| Open Config         | Edit configuration     |
+| Features            | Toggle sub-menu        |
+| Run at Startup      | Toggle auto-start      |
+| Exit                | Stop and exit          |
 
 ## API Endpoints
 

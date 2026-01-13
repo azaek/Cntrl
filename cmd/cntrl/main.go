@@ -37,7 +37,7 @@ var (
 // Tray menu items
 var (
 	mStatus    *systray.MenuItem
-	mDashboard *systray.MenuItem
+	mGitHub    *systray.MenuItem
 	mConfig    *systray.MenuItem
 	mFeatures  *systray.MenuItem
 	mStats     *systray.MenuItem
@@ -125,7 +125,7 @@ func onTrayReady() {
 	systray.AddSeparator()
 
 	// Quick actions
-	mDashboard = systray.AddMenuItem("Open Dashboard", "Open stats in browser")
+	mGitHub = systray.AddMenuItem("View on GitHub", "Open repository in browser")
 	mConfig = systray.AddMenuItem("Open Config", "Edit configuration file")
 
 	systray.AddSeparator()
@@ -175,8 +175,8 @@ func onTrayExit() {
 func handleClicks() {
 	for {
 		select {
-		case <-mDashboard.ClickedCh:
-			openDashboard()
+		case <-mGitHub.ClickedCh:
+			openGitHub()
 		case <-mConfig.ClickedCh:
 			openConfigFile()
 		case <-mStats.ClickedCh:
@@ -335,13 +335,8 @@ func createShortcut() error {
 
 // ============== UTILITIES ==============
 
-func openDashboard() {
-	cfg, err := config.Load()
-	if err != nil {
-		cfg = config.DefaultConfig()
-	}
-	url := fmt.Sprintf("http://localhost:%d/rog/stats", cfg.Server.Port)
-	exec.Command("cmd", "/c", "start", url).Start()
+func openGitHub() {
+	exec.Command("cmd", "/c", "start", config.AppURL).Start()
 }
 
 func openConfigFile() {

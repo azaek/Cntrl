@@ -11,6 +11,9 @@ import (
 // This can be changed if the project is renamed
 const AppName = "Cntrl"
 
+// AppURL is the project's GitHub repository
+const AppURL = "https://github.com/azaek/cntrl"
+
 // Config represents the application configuration
 type Config struct {
 	Server   ServerConfig   `yaml:"server"`
