@@ -1,6 +1,5 @@
 ![Cover](https://github.com/azaek/cntrl/blob/main/github.png)
 
-
 Cntrl is a lightweight remote management bridge for Windows. It exposes your PC's hardware statistics and power controls through a simple, high-performance HTTP API, making it a first-class citizen in your homelab or remote monitoring dashboard.
 
 ## Features
@@ -27,8 +26,9 @@ go mod tidy
 # 1. Install go-winres (required for embedding the EXE icon)
 go install github.com/tc-hib/go-winres@latest
 
-# 2. Process resources (creates syso files)
-go-winres make
+# 2. Process resources (generates the icon file)
+# Use the explicit path to winres.json and target the package folder
+go-winres make --in winres/winres.json --out cmd/cntrl/
 
 # 3. Build (outputs to bin/Cntrl.exe)
 go build -ldflags="-s -w -H windowsgui" -o bin/Cntrl.exe ./cmd/cntrl
@@ -84,6 +84,14 @@ The configuration is stored in `%APPDATA%\Cntrl\config.yaml`.
 -   **App running** = HTTP server available
 -   **App closed** = Everything stops
 -   **No hidden services** - What you see is what you get
+
+## Versioning 🏁
+
+To update the version for a new release, manually update:
+
+-   **`Makefile`**: `VERSION` variable.
+-   **`Cntrl.iss`**: `#define MyAppVersion`.
+-   **`winres/winres.json`**: All version strings.
 
 ## Requirements
 

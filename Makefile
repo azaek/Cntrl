@@ -1,6 +1,6 @@
 .PHONY: build clean install uninstall start stop status run tray installer
 
-VERSION := 1.0.0
+VERSION := 0.0.23-beta
 BINARY_DIR := bin
 BINARY := $(BINARY_DIR)\Cntrl.exe
 LDFLAGS := -ldflags="-s -w -H windowsgui -X main.Version=$(VERSION)"

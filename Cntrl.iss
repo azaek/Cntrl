@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Cntrl"
-#define MyAppVersion "1.0.8"
+#define MyAppVersion "0.0.23-beta"
 #define MyAppPublisher "azaek"
 #define MyAppURL "https://github.com/azaek/cntrl"
 #define MyAppExeName "Cntrl.exe"
@@ -26,8 +26,8 @@ OutputDir=dist
 OutputBaseFilename=CntrlSetup
 Compression=lzma
 SolidCompression=yes
-SetupIconFile=cmd\cntrl\assets\default.ico
-UninstallDisplayIcon={app}\default.ico
+SetupIconFile=winres\app.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -38,13 +38,12 @@ Name: "startup"; Description: "Run Cntrl automatically when Windows starts"; Gro
 
 [Files]
 Source: ".\bin\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\cmd\cntrl\assets\default.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\default.ico"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; IconFilename: "{app}\default.ico"
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startup; IconFilename: "{app}\default.ico"
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startup
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
