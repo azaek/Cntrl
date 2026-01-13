@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"go-pc-rem/internal/config"
-	"go-pc-rem/internal/power"
+	"github.com/azaek/cntrl/internal/config"
+	"github.com/azaek/cntrl/internal/power"
 )
 
 // PowerHandler handles power-related endpoints
@@ -19,6 +19,10 @@ func NewPowerHandler(cfg *config.Config) *PowerHandler {
 
 // Shutdown handles POST /rog/pw/shutdown
 func (h *PowerHandler) Shutdown(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableShutdown {
+		writeError(w, http.StatusForbidden, "Shutdown feature is disabled")
+		return
+	}
 	if err := power.Shutdown(); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -28,6 +32,10 @@ func (h *PowerHandler) Shutdown(w http.ResponseWriter, r *http.Request) {
 
 // Restart handles POST /rog/pw/restart
 func (h *PowerHandler) Restart(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableRestart {
+		writeError(w, http.StatusForbidden, "Restart feature is disabled")
+		return
+	}
 	if err := power.Restart(); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -37,6 +45,10 @@ func (h *PowerHandler) Restart(w http.ResponseWriter, r *http.Request) {
 
 // Hibernate handles POST /rog/pw/hb
 func (h *PowerHandler) Hibernate(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableHibernate {
+		writeError(w, http.StatusForbidden, "Hibernate feature is disabled")
+		return
+	}
 	if err := power.Hibernate(); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return

@@ -9,7 +9,10 @@ import (
 
 // AppName is the application name used for paths and service registration
 // This can be changed if the project is renamed
-const AppName = "go-pc-rem"
+const AppName = "Cntrl"
+
+// AppURL is the project's GitHub repository
+const AppURL = "https://github.com/azaek/cntrl"
 
 // Config represents the application configuration
 type Config struct {

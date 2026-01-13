@@ -1,36 +1,93 @@
-# Go PC Remote
+![Cover](https://github.com/azaek/cntrl/blob/main/github.png)
 
-A lightweight system tray app for Windows that exposes system stats and power control via HTTP.
+[![Go Report Card](https://goreportcard.com/badge/github.com/azaek/cntrl)](https://goreportcard.com/report/github.com/azaek/cntrl)
+![License](https://img.shields.io/github/license/azaek/cntrl)
+![Latest Release](https://img.shields.io/github/v/release/azaek/cntrl?include_prereleases)
+![Ai-assited](https://img.shields.io/badge/AI--assisted-262626)
+
+Cntrl is a lightweight remote management bridge for Windows. It exposes your PC's hardware statistics and power controls through a simple, high-performance HTTP API, making it a first-class citizen in your homelab or remote monitoring dashboard.
 
 ## Features
 
--   **System Tray App** - Runs in background, easy to access
--   **System Stats** - CPU, Memory, GPU (NVIDIA/AMD/Intel), Disks
--   **Power Control** - Shutdown, Restart, Hibernate
--   **Run at Startup** - One-click toggle
--   **Single Binary** - ~7 MB, no dependencies
+-   **Remote Hardware Monitoring** - Instant access to CPU, Memory, GPU (NVIDIA/AMD/Intel), and Disk stats.
+-   **Power Management** - Perform Shutdown, Restart, or Hibernate actions remotely.
+-   **Silent & Passive** - Runs quietly in the system tray with a minimal memory footprint (~7 MB).
+-   **Reactive Branding** - Dynamic tray icon provides instant visual feedback on server status and errors.
+-   **Zero Dependencies** - Single-binary architecture with no external runtimes or background services.
+-   **Ready for Startup** - Easy one-click toggle to launch with Windows.
 
-## Quick Start
+### Build from Source 🛠️
+
+#### 0. Setup
 
 ```powershell
-# Build
-go build -ldflags="-s -w -H windowsgui" -o go-pc-rem.exe ./cmd/go-pc-rem
+# 1. Install dependencies
+go mod tidy
 
-# Run
-.\go-pc-rem.exe
+# 2. Install GoReleaser (The automated build engine)
+go install github.com/goreleaser/goreleaser/v2@latest
+
+# 3. Install go-winres (for icons)
+go install github.com/tc-hib/go-winres@latest
 ```
+
+#### 1. Build for Production (via Git Tag)
+
+GoReleaser uses your **Git Tag** as the version number. It will generate both a **Portable EXE** and an **Interactive Installer**.
+
+```powershell
+# 1. Tag your release
+git tag -a v0.0.23-beta -m "First beta release"
+
+# 2. Run GoReleaser (Builds and packages everything)
+# This will generate:
+# - cntrl_<version>_<arch>_installer.exe
+# - cntrl_<version>_<arch>_portable.zip
+goreleaser release --clean
+```
+
+#### 2. Local Build (Testing)
+
+If you want to build a binary quickly without tagging:
+
+```powershell
+# Using GoReleaser (recommended)
+goreleaser build --snapshot --clean --single-target
+
+# Or via Standard Go (Manual)
+go-winres make --in winres/winres.json --out cmd/cntrl/
+go build -ldflags="-s -w -H windowsgui -X main.Version=0.0.23-beta" -o bin/Cntrl.exe ./cmd/cntrl
+```
+
+The binary will be generated in `dist/` (for GoReleaser) or `bin/` (for Manual).
+
+### Manual Installer (Optional)
+
+Requires [Inno Setup 6](https://jrsoftware.org/isdl.php).
+
+-   **Via GUI**: Right-click `Cntrl.iss` and select **Compile**.
+-   **Via CLI**: `iscc Cntrl.iss`
+
+## Versioning 🏁
+
+Cntrl uses **Git Tags** for official releases. For manual builds, update:
+
+-   **`Makefile`**: `VERSION` variable.
+-   **`Cntrl.iss`**: `#define MyAppVersion`.
+-   **`winres/winres.json`**: All version strings.
 
 The app appears in your system tray. Right-click to access the menu.
 
 ## Tray Menu
 
-| Option             | Description           |
-| ------------------ | --------------------- |
-| ● Running          | Status indicator      |
-| Open Dashboard     | Open stats in browser |
-| Open Config Folder | Edit configuration    |
-| Run at Startup     | Toggle auto-start     |
-| Exit               | Stop and exit         |
+| Option              | Description            |
+| ------------------- | ---------------------- |
+| ● Running on port X | Status & Port info     |
+| View on GitHub      | Open project on GitHub |
+| Open Config         | Edit configuration     |
+| Features            | Toggle sub-menu        |
+| Run at Startup      | Toggle auto-start      |
+| Exit                | Stop and exit          |
 
 ## API Endpoints
 
@@ -47,25 +104,13 @@ Base URL: `http://localhost:9990`
 | `POST /rog/pw/restart`  | Restart PC        |
 | `POST /rog/pw/hb`       | Hibernate PC      |
 
-## Configuration
+## Configuration ⚙️
 
-Location: `%APPDATA%\go-pc-rem\config.yaml`
+The configuration is stored in `%APPDATA%\Cntrl\config.yaml`.
 
-```yaml
-server:
-    port: 9990
-    host: "0.0.0.0"
-
-features:
-    enable_shutdown: true
-    enable_restart: true
-    enable_hibernate: true
-    enable_stats: true
-
-stats:
-    gpu_enabled: true
-    disk_cache_seconds: 30
-```
+-   **Interactive Setup**: The installer will ask for your preferred **Port** and **Features** (Stats, Power actions) during installation.
+-   **Manual Edit**: Right-click the tray icon and select **Open Config** to edit the YAML file directly.
+-   **Dynamic Updates**: Toggling features via the tray menu takes effect immediately without restart.
 
 ## How It Works
 

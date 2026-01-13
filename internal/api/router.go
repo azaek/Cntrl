@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
-	"go-pc-rem/internal/config"
+	"github.com/azaek/cntrl/internal/config"
 )
 
 // NewRouter creates and configures the HTTP router
@@ -38,24 +38,18 @@ func NewRouter(cfg *config.Config) http.Handler {
 		r.Get("/status", StatusHandler)
 
 		// Stats endpoints
-		if cfg.Features.EnableStats {
-			r.Get("/stats", statsHandler.GetFullStats)
-			r.Get("/stats/memory", statsHandler.GetMemoryStats)
-			r.Get("/stats/cpu", statsHandler.GetCpuStats)
-			r.Get("/stats/disk", statsHandler.GetDiskStats)
-		}
+		r.Route("/stats", func(r chi.Router) {
+			r.Get("/", statsHandler.GetFullStats)
+			r.Get("/memory", statsHandler.GetMemoryStats)
+			r.Get("/cpu", statsHandler.GetCpuStats)
+			r.Get("/disk", statsHandler.GetDiskStats)
+		})
 
 		// Power endpoints
 		r.Route("/pw", func(r chi.Router) {
-			if cfg.Features.EnableShutdown {
-				r.Post("/shutdown", powerHandler.Shutdown)
-			}
-			if cfg.Features.EnableRestart {
-				r.Post("/restart", powerHandler.Restart)
-			}
-			if cfg.Features.EnableHibernate {
-				r.Post("/hb", powerHandler.Hibernate)
-			}
+			r.Post("/shutdown", powerHandler.Shutdown)
+			r.Post("/restart", powerHandler.Restart)
+			r.Post("/hb", powerHandler.Hibernate)
 		})
 	})
 

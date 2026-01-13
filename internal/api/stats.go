@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"go-pc-rem/internal/config"
-	"go-pc-rem/internal/stats"
+	"github.com/azaek/cntrl/internal/config"
+	"github.com/azaek/cntrl/internal/stats"
 )
 
 // StatsHandler handles stats-related endpoints
@@ -22,6 +22,10 @@ func NewStatsHandler(cfg *config.Config) *StatsHandler {
 
 // GetFullStats handles GET /rog/stats
 func (h *StatsHandler) GetFullStats(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableStats {
+		writeError(w, http.StatusForbidden, "Stats feature is disabled")
+		return
+	}
 	sysStats, err := stats.GetSystemStats(h.cfg.Display.Hostname, h.cfg.Stats.GpuEnabled)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -32,6 +36,10 @@ func (h *StatsHandler) GetFullStats(w http.ResponseWriter, r *http.Request) {
 
 // GetMemoryStats handles GET /rog/stats/memory
 func (h *StatsHandler) GetMemoryStats(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableStats {
+		writeError(w, http.StatusForbidden, "Stats feature is disabled")
+		return
+	}
 	memStats, err := stats.GetMemoryStats()
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -42,6 +50,10 @@ func (h *StatsHandler) GetMemoryStats(w http.ResponseWriter, r *http.Request) {
 
 // GetCpuStats handles GET /rog/stats/cpu
 func (h *StatsHandler) GetCpuStats(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableStats {
+		writeError(w, http.StatusForbidden, "Stats feature is disabled")
+		return
+	}
 	cpuStats, err := stats.GetCpuStats()
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -52,6 +64,10 @@ func (h *StatsHandler) GetCpuStats(w http.ResponseWriter, r *http.Request) {
 
 // GetDiskStats handles GET /rog/stats/disk
 func (h *StatsHandler) GetDiskStats(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableStats {
+		writeError(w, http.StatusForbidden, "Stats feature is disabled")
+		return
+	}
 	diskStats, err := stats.GetDiskStats()
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())

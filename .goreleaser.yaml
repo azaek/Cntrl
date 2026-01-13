@@ -1,0 +1,60 @@
+# .goreleaser.yaml
+version: 2
+project_name: cntrl
+
+before:
+  hooks:
+    - go mod tidy
+    # Clean stale resources to avoid conflicts
+    - cmd /c "if exist cmd\cntrl\*.syso del cmd\cntrl\*.syso"
+    # Dynamically update winres.json into a temporary build file
+    - powershell -Command "(Get-Content winres/winres.json) -replace 'PLACEHOLDER_FIXED_VERSION', '{{.Major}}.{{.Minor}}.{{.Patch}}.0' -replace 'PLACEHOLDER_STRING_VERSION', '{{.Version}}' | Set-Content winres/winres_build.json"
+    # Generate Windows resources from the temporary file
+    - go-winres make --in winres/winres_build.json --out cmd/cntrl/cntrl
+    # Clean up the temporary file
+    - cmd /c "if exist winres\winres_build.json del winres\winres_build.json"
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+    goarch:
+      - amd64
+    main: ./cmd/cntrl
+    binary: Cntrl
+    ldflags:
+      - -s -w -H windowsgui
+      - -X main.Version={{.Version}}
+    hooks:
+      # Build the Inno Setup installer after the binary is ready
+      post:
+        - cmd /c "if not exist bin mkdir bin"
+        - cmd /c "copy /Y {{ .Path }} bin\Cntrl.exe"
+        - '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion={{.Version}} /DMyNumericVersion={{.Major}}.{{.Minor}}.{{.Patch}}.0 Cntrl.iss'
+
+archives:
+  - id: portable
+    format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}_portable"
+    files:
+      - LICENSE
+      - README.md
+
+release:
+  extra_files:
+    - glob: ./dist/CntrlSetup.exe
+      name_template: "Cntrl_{{ .Version }}_amd64_installer.exe"
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ .Version }}-snapshot"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

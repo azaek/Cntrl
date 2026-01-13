@@ -1,0 +1,29 @@
+{
+    "RT_GROUP_ICON": {
+        "APP": {
+            "0000": ["app.png"]
+        }
+    },
+    "RT_VERSION": {
+        "#1": {
+            "0000": {
+                "Fixed": {
+                    "FileVersion": "PLACEHOLDER_FIXED_VERSION",
+                    "ProductVersion": "PLACEHOLDER_FIXED_VERSION"
+                },
+                "Info": {
+                    "0409": {
+                        "CompanyName": "azaek",
+                        "FileDescription": "Cntrl Remote Management Bridge",
+                        "FileVersion": "PLACEHOLDER_STRING_VERSION",
+                        "InternalName": "Cntrl",
+                        "LegalCopyright": "Copyright (c) 2026 azaek",
+                        "OriginalFilename": "Cntrl.exe",
+                        "ProductName": "Cntrl",
+                        "ProductVersion": "PLACEHOLDER_STRING_VERSION"
+                    }
+                }
+            }
+        }
+    }
+}
