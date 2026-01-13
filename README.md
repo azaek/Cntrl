@@ -3,6 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/azaek/cntrl)](https://goreportcard.com/report/github.com/azaek/cntrl)
 ![License](https://img.shields.io/github/license/azaek/cntrl)
 ![Latest Release](https://img.shields.io/github/v/release/azaek/cntrl?include_prereleases)
+![Ai-assited](https://img.shields.io/badge/AI--assisted-262626)
 
 Cntrl is a lightweight remote management bridge for Windows. It exposes your PC's hardware statistics and power controls through a simple, high-performance HTTP API, making it a first-class citizen in your homelab or remote monitoring dashboard.
 
