@@ -5,7 +5,11 @@ project_name: cntrl
 before:
   hooks:
     - go mod tidy
-    # Generate Windows resources (icons) before building
+    # Clean stale resources to avoid conflicts
+    - cmd /c "if exist cmd\cntrl\*.syso del cmd\cntrl\*.syso"
+    # Dynamically update winres.json with placeholders from the current tag
+    - powershell -Command "(Get-Content winres/winres.json) -replace 'PLACEHOLDER_FIXED_VERSION', '{{.Major}}.{{.Minor}}.{{.Patch}}.0' -replace 'PLACEHOLDER_STRING_VERSION', '{{.Version}}' | Set-Content winres/winres.json"
+    # Generate Windows resources (icons + updated version info)
     - go-winres make --in winres/winres.json --out cmd/cntrl/
 
 builds:
@@ -23,7 +27,9 @@ builds:
     hooks:
       # Build the Inno Setup installer after the binary is ready
       post:
-        - '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion={{.Version}} Cntrl.iss'
+        - cmd /c "if not exist bin mkdir bin"
+        - cmd /c "copy /Y {{ .Path }} bin\Cntrl.exe"
+        - '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion={{.Version}} /DMyNumericVersion={{.Major}}.{{.Minor}}.{{.Patch}}.0 Cntrl.iss'
 
 archives:
   - id: portable
@@ -42,7 +48,7 @@ checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  name_template: "{{ .Version }}-snapshot"
 
 changelog:
   sort: asc
