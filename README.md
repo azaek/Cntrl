@@ -16,32 +16,37 @@ Cntrl is a lightweight remote management bridge for Windows. It exposes your PC'
 #### 0. Setup
 
 ```powershell
-# Install dependencies and generate go.sum
+# 1. Install dependencies
 go mod tidy
+
+# 2. Install GoReleaser (The automated build engine)
+go install github.com/goreleaser/goreleaser/v2@latest
+
+# 3. Install go-winres (for icons)
+go install github.com/tc-hib/go-winres@latest
 ```
 
-#### 1. Build the Binary (skip if already generated)
+#### 1. Build for Production (via Git Tag)
+
+GoReleaser uses your **Git Tag** as the version number.
 
 ```powershell
-# 1. Install go-winres (required for embedding the EXE icon)
-go install github.com/tc-hib/go-winres@latest
+# 1. Tag your release
+git tag -a v0.0.23-beta -m "First beta release"
 
-# 2. Process resources (generates the icon file)
-# Use the explicit path to winres.json and target the package folder
-go-winres make --in winres/winres.json --out cmd/cntrl/
-
-# 3. Build (outputs to bin/Cntrl.exe)
-go build -ldflags="-s -w -H windowsgui" -o bin/Cntrl.exe ./cmd/cntrl
+# 2. Run GoReleaser (Builds and packages everything)
+goreleaser release --clean
 ```
 
-#### 2. Create the Installer (Optional)
+#### 2. Local Build (Testing)
 
-Requires [Inno Setup 6](https://jrsoftware.org/isdl.php).
+If you want to build a binary quickly without tagging:
 
--   **Via GUI**: Right-click `Cntrl.iss` and select **Compile**.
--   **Via CLI**: `iscc Cntrl.iss`
+```powershell
+goreleaser build --snapshot --clean --single-target
+```
 
-The installer will be generated in the **`dist/`** directory.
+The binary will be generated in `dist/cntrl_windows_amd64_v1/`.
 
 The app appears in your system tray. Right-click to access the menu.
 
