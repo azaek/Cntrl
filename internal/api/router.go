@@ -49,7 +49,8 @@ func NewRouter(cfg *config.Config) http.Handler {
 		r.Route("/pw", func(r chi.Router) {
 			r.Post("/shutdown", powerHandler.Shutdown)
 			r.Post("/restart", powerHandler.Restart)
-			r.Post("/hb", powerHandler.Hibernate)
+			r.Post("/hibernate", powerHandler.Hibernate)
+			r.Post("/sleep", powerHandler.Sleep)
 		})
 	})
 

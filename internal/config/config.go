@@ -35,6 +35,7 @@ type FeaturesConfig struct {
 	EnableShutdown  bool `yaml:"enable_shutdown"`
 	EnableRestart   bool `yaml:"enable_restart"`
 	EnableHibernate bool `yaml:"enable_hibernate"`
+	EnableSleep     bool `yaml:"enable_sleep"`
 	EnableStats     bool `yaml:"enable_stats"`
 }
 
@@ -57,6 +58,7 @@ func DefaultConfig() *Config {
 			EnableShutdown:  true,
 			EnableRestart:   true,
 			EnableHibernate: true,
+			EnableSleep:     true,
 			EnableStats:     true,
 		},
 		Stats: StatsConfig{

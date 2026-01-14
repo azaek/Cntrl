@@ -43,6 +43,7 @@ var (
 	mStats     *systray.MenuItem
 	mShutdown  *systray.MenuItem
 	mRestart   *systray.MenuItem
+	mSleep     *systray.MenuItem
 	mHibernate *systray.MenuItem
 	mStartup   *systray.MenuItem
 	mQuit      *systray.MenuItem
@@ -135,6 +136,7 @@ func onTrayReady() {
 	mStats = mFeatures.AddSubMenuItem("Enable Stats", "Expose system statistics")
 	mShutdown = mFeatures.AddSubMenuItem("Enable Shutdown", "Allow remote shutdown")
 	mRestart = mFeatures.AddSubMenuItem("Enable Restart", "Allow remote restart")
+	mSleep = mFeatures.AddSubMenuItem("Enable Sleep", "Allow remote sleep")
 	mHibernate = mFeatures.AddSubMenuItem("Enable Hibernate", "Allow remote hibernation")
 
 	// Set initial check states
@@ -146,6 +148,9 @@ func onTrayReady() {
 	}
 	if appConfig.Features.EnableRestart {
 		mRestart.Check()
+	}
+	if appConfig.Features.EnableSleep {
+		mSleep.Check()
 	}
 	if appConfig.Features.EnableHibernate {
 		mHibernate.Check()
@@ -185,6 +190,8 @@ func handleClicks() {
 			toggleFeature("shutdown")
 		case <-mRestart.ClickedCh:
 			toggleFeature("restart")
+		case <-mSleep.ClickedCh:
+			toggleFeature("sleep")
 		case <-mHibernate.ClickedCh:
 			toggleFeature("hibernate")
 		case <-mStartup.ClickedCh:
@@ -251,6 +258,13 @@ func toggleFeature(feature string) {
 			mRestart.Check()
 		} else {
 			mRestart.Uncheck()
+		}
+	case "sleep":
+		appConfig.Features.EnableSleep = !appConfig.Features.EnableSleep
+		if appConfig.Features.EnableSleep {
+			mSleep.Check()
+		} else {
+			mSleep.Uncheck()
 		}
 	case "hibernate":
 		appConfig.Features.EnableHibernate = !appConfig.Features.EnableHibernate

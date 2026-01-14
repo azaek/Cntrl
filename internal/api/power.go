@@ -51,7 +51,7 @@ func (h *PowerHandler) Restart(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-// Hibernate handles POST /api/pw/hb
+// Hibernate handles POST /api/pw/hibernate
 func (h *PowerHandler) Hibernate(w http.ResponseWriter, r *http.Request) {
 	if !h.cfg.Features.EnableHibernate {
 		writeError(w, http.StatusForbidden, "Hibernate feature is disabled")
@@ -65,5 +65,22 @@ func (h *PowerHandler) Hibernate(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		power.Hibernate()
+	}()
+}
+
+// Sleep handles POST /api/pw/sleep
+func (h *PowerHandler) Sleep(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableSleep {
+		writeError(w, http.StatusForbidden, "Sleep feature is disabled")
+		return
+	}
+
+	// Send response first
+	writeJSON(w, http.StatusOK, StatusResponse{Status: "ok"})
+
+	// Trigger sleep in background
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		power.Sleep()
 	}()
 }

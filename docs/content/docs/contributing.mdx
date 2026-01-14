@@ -1,0 +1,55 @@
+---
+title: Contributing
+description: Help us make Cntrl better.
+icon: Heart
+---
+
+First off, thank you for considering contributing to Cntrl!
+
+## Philosophy
+
+Before you dive in, please keep in mind the project's core philosophy:
+
+-   **Simple**: We want to keep the feature set focused.
+-   **Lightweight**: Avoid adding heavy dependencies unless absolutely necessary.
+-   **Windows Native**: We prioritize a clean, native experience for Windows users.
+
+## Getting Started
+
+To work on Cntrl locally, you'll need:
+
+-   **Go 1.21+**
+-   **Node.js** (if you're working on the documentation)
+
+### Local Development
+
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/azaek/cntrl.git
+    ```
+2. Build the binary for testing:
+    ```bash
+    go build ./cmd/cntrl
+    ```
+3. To test the release flow (GoReleaser):
+    ```bash
+    # Requires goreleaser installed
+    goreleaser build --snapshot --clean --single-target
+    ```
+
+## Documentation
+
+The documentation is built with [Fuma Docs](https://fumadocs.dev). To run it locally:
+
+```bash
+cd docs
+npm run dev
+```
+
+## Pull Requests
+
+-   **Small is better**: We prefer small, focused pull requests.
+-   **Explain the "Why"**: Include a clear description of the problem your PR solves.
+-   **Consistency**: Try to follow the existing code style.
+
+Thank you for being part of the community! 🚀
