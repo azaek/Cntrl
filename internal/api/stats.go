@@ -20,7 +20,7 @@ func NewStatsHandler(cfg *config.Config) *StatsHandler {
 	return &StatsHandler{cfg: cfg}
 }
 
-// GetFullStats handles GET /rog/stats
+// GetFullStats handles GET /api/stats
 func (h *StatsHandler) GetFullStats(w http.ResponseWriter, r *http.Request) {
 	if !h.cfg.Features.EnableStats {
 		writeError(w, http.StatusForbidden, "Stats feature is disabled")
@@ -34,7 +34,7 @@ func (h *StatsHandler) GetFullStats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, sysStats)
 }
 
-// GetMemoryStats handles GET /rog/stats/memory
+// GetMemoryStats handles GET /api/stats/memory
 func (h *StatsHandler) GetMemoryStats(w http.ResponseWriter, r *http.Request) {
 	if !h.cfg.Features.EnableStats {
 		writeError(w, http.StatusForbidden, "Stats feature is disabled")
@@ -48,7 +48,7 @@ func (h *StatsHandler) GetMemoryStats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, memStats)
 }
 
-// GetCpuStats handles GET /rog/stats/cpu
+// GetCpuStats handles GET /api/stats/cpu
 func (h *StatsHandler) GetCpuStats(w http.ResponseWriter, r *http.Request) {
 	if !h.cfg.Features.EnableStats {
 		writeError(w, http.StatusForbidden, "Stats feature is disabled")
@@ -62,7 +62,7 @@ func (h *StatsHandler) GetCpuStats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, cpuStats)
 }
 
-// GetDiskStats handles GET /rog/stats/disk
+// GetDiskStats handles GET /api/stats/disk
 func (h *StatsHandler) GetDiskStats(w http.ResponseWriter, r *http.Request) {
 	if !h.cfg.Features.EnableStats {
 		writeError(w, http.StatusForbidden, "Stats feature is disabled")
