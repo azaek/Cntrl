@@ -18,7 +18,7 @@ Cntrl is a lightweight remote management bridge for Windows. It exposes your PC'
 
 ## Documentation 📖
 
-Check out our full documentation site at [docs/](docs/) (Built with Fuma Docs).
+Check out our full documentation site at **[cntrl.azaek.xyz](https://cntrl.azaek.xyz/)**.
 
 ### Build from Source 🛠️
 
