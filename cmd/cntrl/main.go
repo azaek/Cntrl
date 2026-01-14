@@ -92,7 +92,7 @@ Usage:
 The application runs as a system tray app with an embedded HTTP server.
 Right-click the tray icon to access settings and dashboard.
 
-API available at: http://localhost:9990/rog/stats
+API available at: http://localhost:9990/api/stats
 
 `, config.AppName, config.AppName, config.AppName, config.AppName)
 }

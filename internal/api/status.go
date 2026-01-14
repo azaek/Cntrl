@@ -10,7 +10,7 @@ type StatusResponse struct {
 	Status string `json:"status"`
 }
 
-// StatusHandler handles GET /rog/status
+// StatusHandler handles GET /api/status
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, StatusResponse{Status: "ok"})
 }

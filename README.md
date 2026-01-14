@@ -95,14 +95,14 @@ Base URL: `http://localhost:9990`
 
 | Endpoint                | Description       |
 | ----------------------- | ----------------- |
-| `GET /rog/status`       | Health check      |
-| `GET /rog/stats`        | Full system stats |
-| `GET /rog/stats/memory` | Memory only       |
-| `GET /rog/stats/cpu`    | CPU only          |
-| `GET /rog/stats/disk`   | Disks only        |
-| `POST /rog/pw/shutdown` | Shutdown PC       |
-| `POST /rog/pw/restart`  | Restart PC        |
-| `POST /rog/pw/hb`       | Hibernate PC      |
+| `GET /api/status`       | Health check      |
+| `GET /api/stats`        | Full system stats |
+| `GET /api/stats/memory` | Memory only       |
+| `GET /api/stats/cpu`    | CPU only          |
+| `GET /api/stats/disk`   | Disks only        |
+| `POST /api/pw/shutdown` | Shutdown PC       |
+| `POST /api/pw/restart`  | Restart PC        |
+| `POST /api/pw/hb`       | Hibernate PC      |
 
 ## Configuration ⚙️
 

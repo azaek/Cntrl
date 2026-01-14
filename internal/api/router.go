@@ -33,9 +33,9 @@ func NewRouter(cfg *config.Config) http.Handler {
 	powerHandler := NewPowerHandler(cfg)
 
 	// Routes
-	r.Route("/rog", func(r chi.Router) {
+	r.Route("/api", func(r chi.Router) {
 		// Health check
-		r.Get("/status", StatusHandler)
+		r.Get("/status", StatusHandler) // StatusHandler handles GET /api/status
 
 		// Stats endpoints
 		r.Route("/stats", func(r chi.Router) {
