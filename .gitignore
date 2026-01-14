@@ -19,4 +19,9 @@ Thumbs.db
 # Envs
 .env
 *.syso
-*.syso
+
+# Documentation (Node.js)
+docs/node_modules/
+docs/.next/
+docs/out/
+.npm

@@ -77,6 +77,7 @@ begin
   FeaturePage.Add('Enable Stats (System monitoring)');
   FeaturePage.Add('Enable Shutdown');
   FeaturePage.Add('Enable Restart');
+  FeaturePage.Add('Enable Sleep');
   FeaturePage.Add('Enable Hibernate');
   
   { Default values }
@@ -84,6 +85,7 @@ begin
   FeaturePage.Values[1] := True;
   FeaturePage.Values[2] := True;
   FeaturePage.Values[3] := True;
+  FeaturePage.Values[4] := True;
 end;
 
 function BoolToStr(B: Boolean): String;
@@ -119,7 +121,8 @@ begin
       ConfigLines.Add('  enable_stats: ' + BoolToStr(FeaturePage.Values[0]));
       ConfigLines.Add('  enable_shutdown: ' + BoolToStr(FeaturePage.Values[1]));
       ConfigLines.Add('  enable_restart: ' + BoolToStr(FeaturePage.Values[2]));
-      ConfigLines.Add('  enable_hibernate: ' + BoolToStr(FeaturePage.Values[3]));
+      ConfigLines.Add('  enable_sleep: ' + BoolToStr(FeaturePage.Values[3]));
+      ConfigLines.Add('  enable_hibernate: ' + BoolToStr(FeaturePage.Values[4]));
       
       ConfigLines.SaveToFile(ConfigPath);
     finally

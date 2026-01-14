@@ -1,0 +1,95 @@
+---
+title: API Reference
+description: Technical details for the Cntrl HTTP endpoints.
+icon: Terminal
+---
+
+Cntrl exposes a simple RESTful API. All endpoints are prefixed with `/api`.
+
+## Base URL
+
+By default, the API is available at:
+`http://<YOUR_PC_IP>:9990`
+
+<Callout title="Custom Ports">
+    `9990` is the default port. If you changed the port during installation or
+    in the `config.yaml` file, make sure to use your custom port here.
+</Callout>
+
+## Endpoints
+
+### System Health
+
+| Method | Endpoint      | Description                                          |
+| :----- | :------------ | :--------------------------------------------------- |
+| `GET`  | `/api/status` | Returns `{"status": "ok"}` if the server is healthy. |
+
+### Statistics
+
+| Method | Endpoint            | Description                                                |
+| :----- | :------------------ | :--------------------------------------------------------- |
+| `GET`  | `/api/stats`        | Returns full system stats (CPU, GPU, RAM, Disk, Hostname). |
+| `GET`  | `/api/stats/memory` | Returns detailed RAM usage.                                |
+| `GET`  | `/api/stats/cpu`    | Returns current CPU load and core information.             |
+| `GET`  | `/api/stats/disk`   | Returns drive space and partition info.                    |
+
+### Power Control
+
+| Method | Endpoint            | Description                       |
+| :----- | :------------------ | :-------------------------------- |
+| `POST` | `/api/pw/shutdown`  | Initiates a system shutdown.      |
+| `POST` | `/api/pw/restart`   | Initiates a system restart.       |
+| `POST` | `/api/pw/sleep`     | Puts the system into sleep mode.  |
+| `POST` | `/api/pw/hibernate` | Puts the system into hibernation. |
+
+<Callout type="info">
+    Power commands return a success response **before** the system action is
+    triggered to ensure the remote client receives confirmation.
+</Callout>
+
+## Response Schema
+
+### Full Statistics (`GET /api/stats`)
+
+Example JSON response:
+
+```json
+{
+    "memory": {
+        "total": 34268311552,
+        "used": 12456789012,
+        "free": 21811522540,
+        "usedPercent": 36.35
+    },
+    "cpu": {
+        "manufacturer": "Intel",
+        "brand": "Core™ i9-14900K",
+        "cores": 32,
+        "physicalCores": 24,
+        "speed": 3.2,
+        "currentLoad": 12.5
+    },
+    "gpu": {
+        "vendor": "NVIDIA",
+        "model": "NVIDIA GeForce RTX 4070 Ti SUPER",
+        "vram": 16384,
+        "vramUsed": 1024,
+        "temperatureGpu": 42,
+        "utilizationGpu": 5
+    },
+    "disks": [
+        {
+            "fs": "C:",
+            "type": "NTFS",
+            "size": 1024000000000,
+            "used": 450000000000,
+            "available": 574000000000,
+            "usedPercent": 43.95,
+            "mount": "C:"
+        }
+    ],
+    "uptime": 86400,
+    "hostname": "MY-GAMING-PC",
+    "platform": "win32"
+}
+```

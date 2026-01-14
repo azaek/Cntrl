@@ -10,11 +10,15 @@ Cntrl is a lightweight remote management bridge for Windows. It exposes your PC'
 ## Features
 
 -   **Remote Hardware Monitoring** - Instant access to CPU, Memory, GPU (NVIDIA/AMD/Intel), and Disk stats.
--   **Power Management** - Perform Shutdown, Restart, or Hibernate actions remotely.
+-   **Power Management** - Perform Shutdown, Restart, Sleep, or Hibernate actions remotely.
 -   **Silent & Passive** - Runs quietly in the system tray with a minimal memory footprint (~7 MB).
 -   **Reactive Branding** - Dynamic tray icon provides instant visual feedback on server status and errors.
 -   **Zero Dependencies** - Single-binary architecture with no external runtimes or background services.
 -   **Ready for Startup** - Easy one-click toggle to launch with Windows.
+
+## Documentation 📖
+
+Check out our full documentation site at [docs/](docs/) (Built with Fuma Docs).
 
 ### Build from Source 🛠️
 
@@ -93,16 +97,17 @@ The app appears in your system tray. Right-click to access the menu.
 
 Base URL: `http://localhost:9990`
 
-| Endpoint                | Description       |
-| ----------------------- | ----------------- |
-| `GET /api/status`       | Health check      |
-| `GET /api/stats`        | Full system stats |
-| `GET /api/stats/memory` | Memory only       |
-| `GET /api/stats/cpu`    | CPU only          |
-| `GET /api/stats/disk`   | Disks only        |
-| `POST /api/pw/shutdown` | Shutdown PC       |
-| `POST /api/pw/restart`  | Restart PC        |
-| `POST /api/pw/hb`       | Hibernate PC      |
+| Endpoint                 | Description       |
+| ------------------------ | ----------------- |
+| `GET /api/status`        | Health check      |
+| `GET /api/stats`         | Full system stats |
+| `GET /api/stats/memory`  | Memory only       |
+| `GET /api/stats/cpu`     | CPU only          |
+| `GET /api/stats/disk`    | Disks only        |
+| `POST /api/pw/shutdown`  | Shutdown PC       |
+| `POST /api/pw/restart`   | Restart PC        |
+| `POST /api/pw/sleep`     | Sleep PC          |
+| `POST /api/pw/hibernate` | Hibernate PC      |
 
 ## Configuration ⚙️
 
