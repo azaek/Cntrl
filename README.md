@@ -150,7 +150,9 @@ Base URL: `http://localhost:9990`
 
 ## Configuration ⚙️
 
-The configuration is stored in `%APPDATA%\Cntrl\config.yaml`.
+The configuration is stored in your user's config directory:
+- **Windows**: `%APPDATA%\Cntrl\config.yaml`
+- **macOS**: `~/Library/Application Support/Cntrl/config.yaml`
 
 -   **Interactive Setup**: The installer will ask for your preferred **Port** and **Features** (Stats, Power actions) during installation.
 -   **Manual Edit**: Right-click the tray icon and select **Open Config** to edit the YAML file directly.

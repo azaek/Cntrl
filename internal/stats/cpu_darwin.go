@@ -72,6 +72,33 @@ func getCPUStaticInfo() *cpuStaticInfo {
 			if freq, err := strconv.ParseInt(strings.TrimSpace(string(freqOut)), 10, 64); err == nil {
 				cpuInfoCache.Speed = float64(freq) / 1e9 // Convert Hz to GHz
 			}
+		} else {
+			// Apple Silicon fallback - try to get max frequency from performance cores
+			// Use known M-chip speeds as fallback
+			brandLower := strings.ToLower(cpuInfoCache.Brand)
+			switch {
+			case strings.Contains(brandLower, "m1 pro"), strings.Contains(brandLower, "m1 max"):
+				cpuInfoCache.Speed = 3.2
+			case strings.Contains(brandLower, "m1"):
+				cpuInfoCache.Speed = 3.2
+			case strings.Contains(brandLower, "m2 pro"), strings.Contains(brandLower, "m2 max"):
+				cpuInfoCache.Speed = 3.5
+			case strings.Contains(brandLower, "m2"):
+				cpuInfoCache.Speed = 3.5
+			case strings.Contains(brandLower, "m3 pro"), strings.Contains(brandLower, "m3 max"):
+				cpuInfoCache.Speed = 4.0
+			case strings.Contains(brandLower, "m3"):
+				cpuInfoCache.Speed = 4.0
+			case strings.Contains(brandLower, "m4"):
+				cpuInfoCache.Speed = 4.4
+			default:
+				// Try alternative sysctl for timebase frequency
+				tbOut, _ := exec.Command("sysctl", "-n", "hw.tbfrequency").Output()
+				if tb, err := strconv.ParseInt(strings.TrimSpace(string(tbOut)), 10, 64); err == nil && tb > 0 {
+					// This is timebase, not CPU frequency, but gives some indication
+					cpuInfoCache.Speed = 0 // Unknown for unknown Apple Silicon
+				}
+			}
 		}
 
 		// Fallback values

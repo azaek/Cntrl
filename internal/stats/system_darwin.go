@@ -58,7 +58,7 @@ func GetSystemStats(hostnameOverride string, gpuEnabled bool) (*SystemStats, err
 		Disks:    disks,
 		Uptime:   uptime,
 		Hostname: hostname,
-		Platform: "darwin",
+		Platform: "macos",
 	}, nil
 }
 

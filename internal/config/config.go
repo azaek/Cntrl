@@ -68,20 +68,15 @@ func DefaultConfig() *Config {
 	}
 }
 
-// GetConfigPath returns the path to the config file in APPDATA
+// GetConfigPath returns the path to the config file in the user's config directory
 func GetConfigPath() (string, error) {
-	appData := os.Getenv("APPDATA")
-	if appData == "" {
-		// Fallback to user home directory
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		appData = filepath.Join(home, "AppData", "Roaming")
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
 	}
 
-	configDir := filepath.Join(appData, AppName)
-	return filepath.Join(configDir, "config.yaml"), nil
+	appConfigDir := filepath.Join(configDir, AppName)
+	return filepath.Join(appConfigDir, "config.yaml"), nil
 }
 
 // EnsureConfigDir creates the config directory if it doesn't exist

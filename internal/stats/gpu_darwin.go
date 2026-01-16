@@ -4,6 +4,7 @@ package stats
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -94,16 +95,16 @@ func getNvidiaStats() (*GpuStats, error) {
 // SystemProfilerGPU represents GPU info from system_profiler JSON output
 type systemProfilerGPU struct {
 	SPDisplaysDataType []struct {
-		SPPCIDevice        string `json:"sppci_device"`
-		ChipsetModel       string `json:"sppci_model"`
-		VRAMDynamic        string `json:"spdisplays_vram_dynamic,omitempty"`
-		VRAMShared         string `json:"spdisplays_vram_shared,omitempty"`
-		VRAMStatic         string `json:"spdisplays_vram,omitempty"`
-		Vendor             string `json:"sppci_vendor,omitempty"`
-		MetalFamily        string `json:"spdisplays_mtlgpufamilysupport,omitempty"`
-		DeviceType         string `json:"sppci_device_type,omitempty"`
-		ChipsetVendor      string `json:"sppci_chipset_vendor,omitempty"`
-		AppleSiliconModel  string `json:"sppci_model,omitempty"`
+		Name              string `json:"_name"`
+		Model             string `json:"sppci_model"`
+		Vendor            string `json:"spdisplays_vendor"`
+		Cores             string `json:"sppci_cores"`
+		DeviceType        string `json:"sppci_device_type"`
+		MetalFamily       string `json:"spdisplays_mtlgpufamilysupport"`
+		Bus               string `json:"sppci_bus"`
+		VRAMDynamic       string `json:"spdisplays_vram_dynamic,omitempty"`
+		VRAMShared        string `json:"spdisplays_vram_shared,omitempty"`
+		VRAMStatic        string `json:"spdisplays_vram,omitempty"`
 	} `json:"SPDisplaysDataType"`
 }
 
@@ -126,25 +127,40 @@ func getSystemProfilerGpuStats() (*GpuStats, error) {
 
 	gpu := profilerData.SPDisplaysDataType[0]
 
-	// Determine vendor
-	vendor := "Unknown"
-	model := gpu.ChipsetModel
+	// Get model from sppci_model field
+	model := gpu.Model
 	if model == "" {
-		model = gpu.AppleSiliconModel
+		// Try to extract from _name field (e.g., "kHW_AppleM1Item" -> "Apple M1")
+		name := gpu.Name
+		if strings.Contains(name, "AppleM") {
+			// Extract chip name from kHW_AppleM1Item format
+			name = strings.TrimPrefix(name, "kHW_")
+			name = strings.TrimSuffix(name, "Item")
+			// Convert AppleM1 to Apple M1
+			name = strings.Replace(name, "AppleM", "Apple M", 1)
+			model = name
+		}
 	}
 
-	modelLower := strings.ToLower(model)
-	if strings.Contains(modelLower, "apple") || strings.Contains(modelLower, "m1") ||
-		strings.Contains(modelLower, "m2") || strings.Contains(modelLower, "m3") ||
-		strings.Contains(modelLower, "m4") {
+	// Determine vendor from vendor field or model name
+	vendor := "Unknown"
+	vendorStr := strings.ToLower(gpu.Vendor)
+	if strings.Contains(vendorStr, "apple") {
 		vendor = "Apple"
-	} else if strings.Contains(modelLower, "intel") {
-		vendor = "Intel"
-	} else if strings.Contains(modelLower, "amd") || strings.Contains(modelLower, "radeon") {
-		vendor = "AMD"
+	} else {
+		modelLower := strings.ToLower(model)
+		if strings.Contains(modelLower, "apple") || strings.Contains(modelLower, "m1") ||
+			strings.Contains(modelLower, "m2") || strings.Contains(modelLower, "m3") ||
+			strings.Contains(modelLower, "m4") {
+			vendor = "Apple"
+		} else if strings.Contains(modelLower, "intel") {
+			vendor = "Intel"
+		} else if strings.Contains(modelLower, "amd") || strings.Contains(modelLower, "radeon") {
+			vendor = "AMD"
+		}
 	}
 
-	// Parse VRAM
+	// Parse VRAM (Apple Silicon uses unified memory, so VRAM fields may be empty)
 	var vramMB *int
 	vramStr := gpu.VRAMStatic
 	if vramStr == "" {
@@ -170,10 +186,32 @@ func getSystemProfilerGpuStats() (*GpuStats, error) {
 		}
 	}
 
+	// Parse GPU cores (Apple Silicon specific)
+	var gpuCores *int
+	if gpu.Cores != "" {
+		if cores, err := strconv.Atoi(gpu.Cores); err == nil {
+			gpuCores = &cores
+		}
+	}
+
+	// Initialize default values (-1 means unavailable)
+	notAvailable := -1
+	vramUsed := notAvailable
+	temp := notAvailable
+	util := notAvailable
+
+	// For Apple Silicon, include cores info in model if available
+	if gpuCores != nil && vendor == "Apple" && !strings.Contains(model, "core") {
+		model = fmt.Sprintf("%s (%d-core GPU)", model, *gpuCores)
+	}
+
 	return &GpuStats{
-		Vendor: vendor,
-		Model:  model,
-		Vram:   vramMB,
+		Vendor:         vendor,
+		Model:          model,
+		Vram:           vramMB,
+		VramUsed:       &vramUsed,
+		TemperatureGpu: &temp,
+		UtilizationGpu: &util,
 	}, nil
 }
 
@@ -231,9 +269,18 @@ func parseSystemProfilerText() (*GpuStats, error) {
 		}
 	}
 
+	// Initialize default values (-1 means unavailable)
+	notAvailable := -1
+	vramUsed := notAvailable
+	temp := notAvailable
+	util := notAvailable
+
 	return &GpuStats{
-		Vendor: vendor,
-		Model:  model,
-		Vram:   vramMB,
+		Vendor:         vendor,
+		Model:          model,
+		Vram:           vramMB,
+		VramUsed:       &vramUsed,
+		TemperatureGpu: &temp,
+		UtilizationGpu: &util,
 	}, nil
 }
