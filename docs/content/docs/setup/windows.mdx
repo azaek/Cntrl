@@ -1,0 +1,44 @@
+---
+title: Windows Setup
+description: Get Cntrl running on your Windows PC.
+---
+
+Setting up Cntrl on Windows is simple with the interactive installer.
+
+## Installation
+
+<Steps>
+<Step>
+### Download
+Download the latest `Cntrl_vX.X.X_amd64_installer.exe` from the [GitHub Releases](https://github.com/azaek/cntrl/releases).
+</Step>
+
+<Step>
+    ### Run the Installer It will walk you through setting up: 
+    - **Port**: The default is `9990`. 
+    - **Features**: Choose whether you want to enable Stats, Shutdown, Restart, or Hibernate.
+</Step>
+
+<Step>
+### Launch
+Once installed, Cntrl will appear in your system tray. Look for the teal icon!
+</Step>
+</Steps>
+
+## Portable Version
+
+If you prefer not to install, download the `cntrl_vX.X.X_windows_amd64_portable.zip` and run `Cntrl.exe` directly.
+
+## Launch at Startup
+
+Right-click the tray icon and select **Run at Startup**. This creates a shortcut in your Windows Startup folder.
+
+## Verify It's Working
+
+Open your browser and go to:
+
+```
+http://localhost:9990/api/status
+```
+
+You should see `{"status":"ok"}`.

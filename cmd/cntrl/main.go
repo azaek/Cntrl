@@ -7,21 +7,13 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"syscall"
 	"time"
-	"unsafe"
 
 	"github.com/getlantern/systray"
-	"golang.org/x/sys/windows"
 
 	"github.com/azaek/cntrl/internal/api"
 	"github.com/azaek/cntrl/internal/config"
 )
-
-// Global mutex handle to keep it alive for the duration of the app
-var mutexHandle windows.Handle
 
 //go:embed assets/*
 var assets embed.FS
@@ -64,19 +56,14 @@ func main() {
 		}
 	}
 
-	// Single instance check using Windows Mutex
-	mutexNamePtr, _ := windows.UTF16PtrFromString("Local\\" + config.AppName + "_Lock")
-	var err error
-	mutexHandle, err = windows.CreateMutex(nil, false, mutexNamePtr)
-	if err != nil {
-		// Failed to create mutex
+	// Single instance check (platform-specific)
+	if !checkSingleInstance() {
 		return
 	}
-	if windows.GetLastError() == windows.ERROR_ALREADY_EXISTS {
-		showError(fmt.Sprintf("%s is already running.", config.AppName))
-		return
-	}
-	defer windows.CloseHandle(mutexHandle)
+	defer cleanupSingleInstance()
+
+	// Hide console window if needed (platform-specific)
+	hideConsoleWindow()
 
 	// Default: run tray app with embedded server
 	systray.Run(onTrayReady, onTrayExit)
@@ -109,7 +96,7 @@ func onTrayReady() {
 
 	// Set icon and title
 	updateTrayIcon()
-	systray.SetTitle(config.AppName)
+	systray.SetTitle(getTrayTitle()) // Empty on macOS, app name on Windows
 	systray.SetTooltip(config.AppName)
 
 	// Start the HTTP server with the shared config
@@ -159,7 +146,7 @@ func onTrayReady() {
 	systray.AddSeparator()
 
 	// Startup toggle
-	mStartup = systray.AddMenuItem("Run at Startup", "Start automatically when Windows starts")
+	mStartup = systray.AddMenuItem("Run at Startup", "Start automatically when system starts")
 	if isInStartup() {
 		mStartup.Check()
 	}
@@ -297,25 +284,14 @@ func stopServer() {
 
 // ============== STARTUP MANAGEMENT ==============
 
-func getStartupShortcutPath() string {
-	appData := os.Getenv("APPDATA")
-	return filepath.Join(appData, "Microsoft", "Windows", "Start Menu", "Programs", "Startup", config.AppName+".lnk")
-}
-
-func isInStartup() bool {
-	shortcutPath := getStartupShortcutPath()
-	_, err := os.Stat(shortcutPath)
-	return err == nil
-}
-
 func toggleStartup() {
 	if isInStartup() {
 		// Remove from startup
-		os.Remove(getStartupShortcutPath())
+		removeFromStartup()
 		mStartup.Uncheck()
 	} else {
 		// Add to startup
-		if err := createShortcut(); err != nil {
+		if err := addToStartup(); err != nil {
 			showError(fmt.Sprintf("Failed to add to startup: %v", err))
 			return
 		}
@@ -324,33 +300,10 @@ func toggleStartup() {
 	updateTrayIcon()
 }
 
-func createShortcut() error {
-	exePath, err := os.Executable()
-	if err != nil {
-		return err
-	}
-	exePath, _ = filepath.Abs(exePath)
-
-	shortcutPath := getStartupShortcutPath()
-
-	// Use PowerShell to create shortcut
-	script := fmt.Sprintf(`
-		$WshShell = New-Object -ComObject WScript.Shell
-		$Shortcut = $WshShell.CreateShortcut('%s')
-		$Shortcut.TargetPath = '%s'
-		$Shortcut.WorkingDirectory = '%s'
-		$Shortcut.Save()
-	`, shortcutPath, exePath, filepath.Dir(exePath))
-
-	cmd := exec.Command("powershell", "-Command", script)
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	return cmd.Run()
-}
-
 // ============== UTILITIES ==============
 
 func openGitHub() {
-	exec.Command("cmd", "/c", "start", config.AppURL).Start()
+	openURL(config.AppURL)
 }
 
 func openConfigFile() {
@@ -361,15 +314,7 @@ func openConfigFile() {
 	}
 	// Create if not exists
 	config.CreateDefaultConfig()
-	exec.Command("cmd", "/c", "start", configPath).Start()
-}
-
-func showError(message string) {
-	user32 := syscall.NewLazyDLL("user32.dll")
-	messageBoxW := user32.NewProc("MessageBoxW")
-	title, _ := syscall.UTF16PtrFromString(config.AppName)
-	text, _ := syscall.UTF16PtrFromString(message)
-	messageBoxW.Call(0, uintptr(unsafe.Pointer(text)), uintptr(unsafe.Pointer(title)), 0x10)
+	openFile(configPath)
 }
 
 // ============== TRAY ICON ==============

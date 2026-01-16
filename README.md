@@ -5,7 +5,7 @@
 ![Latest Release](https://img.shields.io/github/v/release/azaek/cntrl?include_prereleases)
 ![Ai-assited](https://img.shields.io/badge/AI--assisted-262626)
 
-Cntrl is a lightweight remote management bridge for Windows. It exposes your PC's hardware statistics and power controls through a simple, high-performance HTTP API, making it a first-class citizen in your homelab or remote monitoring dashboard.
+Cntrl is a lightweight remote management bridge for Windows and macOS. It exposes your PC's hardware statistics and power controls through a simple, high-performance HTTP API, making it a first-class citizen in your homelab or remote monitoring dashboard.
 
 ## Features
 
@@ -14,7 +14,8 @@ Cntrl is a lightweight remote management bridge for Windows. It exposes your PC'
 -   **Silent & Passive** - Runs quietly in the system tray with a minimal memory footprint (~7 MB).
 -   **Reactive Branding** - Dynamic tray icon provides instant visual feedback on server status and errors.
 -   **Zero Dependencies** - Single-binary architecture with no external runtimes or background services.
--   **Ready for Startup** - Easy one-click toggle to launch with Windows.
+-   **Ready for Startup** - Easy one-click toggle to launch with Windows/macOS.
+-   **Cross-Platform** - Native support for Windows and macOS (Intel & Apple Silicon).
 
 ## Documentation 📖
 
@@ -72,6 +73,44 @@ Requires [Inno Setup 6](https://jrsoftware.org/isdl.php).
 -   **Via GUI**: Right-click `Cntrl.iss` and select **Compile**.
 -   **Via CLI**: `iscc Cntrl.iss`
 
+### macOS Build 🍎
+
+macOS builds require CGO (for system tray) and must be built on a Mac.
+
+#### Build App Bundle
+
+```bash
+# Build Cntrl.app for Apple Silicon
+./scripts/build-macos.sh 0.1.0 arm64
+
+# Build Cntrl.app for Intel Mac
+./scripts/build-macos.sh 0.1.0 amd64
+```
+
+The `.app` bundle will be created at `macos/Cntrl.app`.
+
+#### Create DMG Installer
+
+```bash
+# Create DMG (run after building the app bundle)
+./scripts/create-dmg.sh 0.1.0
+```
+
+The DMG will be created at `dist/Cntrl_0.1.0_macOS.dmg`.
+
+#### Manual Build (without scripts)
+
+```bash
+# Build binary
+CGO_ENABLED=1 go build -ldflags="-s -w -X main.Version=0.1.0" -o macos/Cntrl.app/Contents/MacOS/Cntrl ./cmd/cntrl
+
+# Test
+open macos/Cntrl.app
+
+# Install
+cp -r macos/Cntrl.app /Applications/
+```
+
 ## Versioning 🏁
 
 Cntrl uses **Git Tags** for official releases. For manual builds, update:
@@ -125,5 +164,6 @@ The configuration is stored in `%APPDATA%\Cntrl\config.yaml`.
 
 ## Requirements
 
--   Windows 10/11
+-   Windows 10/11 or macOS 10.13+
 -   Go 1.22+ (for building)
+-   Xcode Command Line Tools (for macOS builds)
