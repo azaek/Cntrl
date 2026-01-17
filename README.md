@@ -77,32 +77,60 @@ Requires [Inno Setup 6](https://jrsoftware.org/isdl.php).
 
 macOS builds require CGO (for system tray) and must be built on a Mac.
 
-#### Build App Bundle
+#### Quick Build (All Architectures + DMGs)
 
 ```bash
-# Build Cntrl.app for Apple Silicon
-./scripts/build-macos.sh 0.1.0 arm64
+# Build Intel, Apple Silicon, and Universal binaries, then create all 3 DMGs
+./scripts/build-macos-universal.sh
+# You'll be prompted for version, e.g., 0.0.24-beta
 
-# Build Cntrl.app for Intel Mac
-./scripts/build-macos.sh 0.1.0 amd64
+# Then create all DMGs
+./scripts/create-dmg.sh   # Creates Universal DMG (prompts for version)
+./scripts/create-dmg.sh 0.0.24-beta intel   # Creates Intel DMG
+./scripts/create-dmg.sh 0.0.24-beta arm     # Creates Apple Silicon DMG
 ```
 
-The `.app` bundle will be created at `macos/Cntrl.app`.
-
-#### Create DMG Installer
+#### Build Single Architecture
 
 ```bash
-# Create DMG (run after building the app bundle)
-./scripts/create-dmg.sh 0.1.0
+# Build for Apple Silicon
+./scripts/build-macos.sh 0.0.24-beta arm
+
+# Build for Intel
+./scripts/build-macos.sh 0.0.24-beta intel
+
+# Or run without args to be prompted
+./scripts/build-macos.sh
 ```
 
-The DMG will be created at `dist/Cntrl_0.1.0_macOS.dmg`.
+#### Output Structure
+
+| Command | Output |
+|---------|--------|
+| `build-macos.sh VERSION intel` | `macos/Cntrl-Intel.app` |
+| `build-macos.sh VERSION arm` | `macos/Cntrl-AppleSilicon.app` |
+| `build-macos-universal.sh VERSION` | All three `.app` bundles |
+| `create-dmg.sh VERSION intel` | `dist/Cntrl_VERSION_macOS_Intel.dmg` |
+| `create-dmg.sh VERSION arm` | `dist/Cntrl_VERSION_macOS_AppleSilicon.dmg` |
+| `create-dmg.sh VERSION universal` | `dist/Cntrl_VERSION_macOS_Universal.dmg` |
+
+#### Using Make (Alternative)
+
+```bash
+# Build everything at once
+make dmg-all VERSION=0.0.24-beta
+
+# Or individual targets
+make build-macos-intel VERSION=0.0.24-beta
+make build-macos-arm VERSION=0.0.24-beta
+make build-macos-universal VERSION=0.0.24-beta
+```
 
 #### Manual Build (without scripts)
 
 ```bash
 # Build binary
-CGO_ENABLED=1 go build -ldflags="-s -w -X main.Version=0.1.0" -o macos/Cntrl.app/Contents/MacOS/Cntrl ./cmd/cntrl
+CGO_ENABLED=1 go build -ldflags="-s -w -X main.Version=0.0.24-beta" -o macos/Cntrl.app/Contents/MacOS/Cntrl ./cmd/cntrl
 
 # Test
 open macos/Cntrl.app
