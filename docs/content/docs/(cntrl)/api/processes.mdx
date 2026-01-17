@@ -1,0 +1,80 @@
+---
+title: Processes
+description: Get top processes by memory usage.
+icon: Activity
+---
+
+<Callout type="warn" title="Experimental">
+    The processes endpoint is **experimental** and may change in future versions.
+</Callout>
+
+The `/api/processes` endpoint returns a list of running processes, aggregated by name and sorted by memory usage.
+
+## Endpoint
+
+| Method | URL              |
+| :----- | :--------------- |
+| `GET`  | `/api/processes` |
+
+## Example Request
+
+```bash title="Request"
+curl http://192.168.1.100:9990/api/processes
+```
+
+## Response Schema
+
+Returns the **top 20 processes** sorted by total memory usage (descending).
+
+```json title="Response"
+[
+    {
+        "name": "chrome.exe",
+        "count": 15,
+        "memory": 1572864000,
+        "memory_mb": 1500.5,
+        "cpu_time": 245.67
+    },
+    {
+        "name": "brave.exe",
+        "count": 8,
+        "memory": 524288000,
+        "memory_mb": 500.0,
+        "cpu_time": 123.45
+    },
+    {
+        "name": "Code.exe",
+        "count": 3,
+        "memory": 314572800,
+        "memory_mb": 300.0,
+        "cpu_time": 56.78
+    }
+]
+```
+
+## Field Reference
+
+| Field       | Type   | Description                              |
+| :---------- | :----- | :--------------------------------------- |
+| `name`      | string | Process executable name.                 |
+| `count`     | int    | Number of instances with this name.      |
+| `memory`    | int    | Total memory usage in bytes.             |
+| `memory_mb` | float  | Total memory usage in MB.                |
+| `cpu_time`  | float  | Total CPU time used in seconds.          |
+
+## Notes
+
+<Callout type="info" title="Aggregation">
+    Processes with the same name (e.g., multiple `chrome.exe` tabs) are grouped
+    together. Memory and CPU time are summed across all instances.
+</Callout>
+
+<Callout type="info" title="CPU Time vs CPU Percentage">
+    `cpu_time` represents the **total** CPU time the process has consumed since
+    it started (in seconds). This is different from real-time CPU percentage,
+    which would require sampling over time and add overhead.
+</Callout>
+
+### Sorting
+
+The list is sorted by total memory usage in descending order, showing the most memory-hungry processes first. Only the top 20 are returned to keep the response lightweight.

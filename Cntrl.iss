@@ -33,7 +33,7 @@ OutputDir=dist
 OutputBaseFilename=CntrlSetup
 Compression=lzma
 SolidCompression=yes
-SetupIconFile=winres\app.ico
+SetupIconFile=winres\app_256.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]

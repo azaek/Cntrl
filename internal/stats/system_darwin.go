@@ -58,8 +58,12 @@ func GetSystemStats(hostnameOverride string, gpuEnabled bool) (*SystemStats, err
 		Disks:    disks,
 		Uptime:   uptime,
 		Hostname: hostname,
-		Platform: "macos",
+		Platform: getPlatformName(),
 	}, nil
+}
+
+func getPlatformName() string {
+	return "macos"
 }
 
 // getSystemUptime returns system uptime in seconds using sysctl

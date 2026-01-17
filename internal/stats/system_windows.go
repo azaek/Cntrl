@@ -65,3 +65,7 @@ func getSystemUptime() int64 {
 	// GetTickCount64 returns milliseconds
 	return int64(ret) / 1000
 }
+
+func getPlatformName() string {
+	return "win32"
+}

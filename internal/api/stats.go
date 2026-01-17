@@ -21,6 +21,7 @@ func NewStatsHandler(cfg *config.Config) *StatsHandler {
 }
 
 // GetFullStats handles GET /api/stats
+// Deprecated: Use GetSystemInfo (/api/system) and GetSystemUsage (/api/usage) instead
 func (h *StatsHandler) GetFullStats(w http.ResponseWriter, r *http.Request) {
 	if !h.cfg.Features.EnableStats {
 		writeError(w, http.StatusForbidden, "Stats feature is disabled")
@@ -32,6 +33,34 @@ func (h *StatsHandler) GetFullStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, sysStats)
+}
+
+// GetSystemInfo handles GET /api/system (Static info)
+func (h *StatsHandler) GetSystemInfo(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableSystem {
+		writeError(w, http.StatusForbidden, "System info feature is disabled")
+		return
+	}
+	info, err := stats.GetSystemInfo(h.cfg.Display.Hostname, h.cfg.Stats.GpuEnabled)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, info)
+}
+
+// GetSystemUsage handles GET /api/usage (Dynamic usage)
+func (h *StatsHandler) GetSystemUsage(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableUsage {
+		writeError(w, http.StatusForbidden, "Usage data feature is disabled")
+		return
+	}
+	usage, err := stats.GetSystemUsage(h.cfg.Stats.GpuEnabled)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, usage)
 }
 
 // GetMemoryStats handles GET /api/stats/memory
@@ -74,4 +103,19 @@ func (h *StatsHandler) GetDiskStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, diskStats)
+}
+
+// GetProcessList handles GET /api/processes
+func (h *StatsHandler) GetProcessList(w http.ResponseWriter, r *http.Request) {
+	if !h.cfg.Features.EnableProcesses {
+		writeError(w, http.StatusForbidden, "Processes feature is disabled")
+		return
+	}
+
+	procs, err := stats.GetProcesses()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, procs)
 }

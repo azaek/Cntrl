@@ -1,3 +1,5 @@
+//go:build !darwin || cgo
+
 package main
 
 import (
@@ -28,17 +30,22 @@ var (
 
 // Tray menu items
 var (
-	mStatus    *systray.MenuItem
-	mGitHub    *systray.MenuItem
-	mConfig    *systray.MenuItem
-	mFeatures  *systray.MenuItem
-	mStats     *systray.MenuItem
-	mShutdown  *systray.MenuItem
-	mRestart   *systray.MenuItem
-	mSleep     *systray.MenuItem
-	mHibernate *systray.MenuItem
-	mStartup   *systray.MenuItem
-	mQuit      *systray.MenuItem
+	mStatus       *systray.MenuItem
+	mGitHub       *systray.MenuItem
+	mConfig       *systray.MenuItem
+	mReloadConfig *systray.MenuItem
+	mFeatures     *systray.MenuItem
+	mSystem       *systray.MenuItem
+	mUsage        *systray.MenuItem
+	mStatsLegacy  *systray.MenuItem
+	mShutdown     *systray.MenuItem
+	mRestart      *systray.MenuItem
+	mSleep        *systray.MenuItem
+	mHibernate    *systray.MenuItem
+	mMedia        *systray.MenuItem
+	mProcesses    *systray.MenuItem
+	mStartup      *systray.MenuItem
+	mQuit         *systray.MenuItem
 
 	appConfig *config.Config
 )
@@ -115,20 +122,31 @@ func onTrayReady() {
 	// Quick actions
 	mGitHub = systray.AddMenuItem("View on GitHub", "Open repository in browser")
 	mConfig = systray.AddMenuItem("Open Config", "Edit configuration file")
+	mReloadConfig = systray.AddMenuItem("Reload Config", "Apply config changes (restarts server)")
 
 	systray.AddSeparator()
 
 	// Feature Toggles
 	mFeatures = systray.AddMenuItem("Features", "Enable or disable features")
-	mStats = mFeatures.AddSubMenuItem("Enable Stats", "Expose system statistics")
-	mShutdown = mFeatures.AddSubMenuItem("Enable Shutdown", "Allow remote shutdown")
-	mRestart = mFeatures.AddSubMenuItem("Enable Restart", "Allow remote restart")
+	mSystem = mFeatures.AddSubMenuItem("Enable System Info", "Static hardware info (/api/system)")
+	mUsage = mFeatures.AddSubMenuItem("Enable Usage Data", "Dynamic usage metrics (/api/usage)")
+	mStatsLegacy = mFeatures.AddSubMenuItem("Enable Stats (Legacy)", "Combined endpoint (/api/stats)")
+	mShutdown = mFeatures.AddSubMenuItem("Enable Shutdown", "⚠️ Critical Action! Allows remote shutdown")
+	mRestart = mFeatures.AddSubMenuItem("Enable Restart", "⚠️ Critical Action! Allows remote restart")
 	mSleep = mFeatures.AddSubMenuItem("Enable Sleep", "Allow remote sleep")
 	mHibernate = mFeatures.AddSubMenuItem("Enable Hibernate", "Allow remote hibernation")
+	mMedia = mFeatures.AddSubMenuItem("Enable Media (Experimental)", "Media playback control")
+	mProcesses = mFeatures.AddSubMenuItem("Enable Processes (Experimental)", "Process list endpoint")
 
 	// Set initial check states
+	if appConfig.Features.EnableSystem {
+		mSystem.Check()
+	}
+	if appConfig.Features.EnableUsage {
+		mUsage.Check()
+	}
 	if appConfig.Features.EnableStats {
-		mStats.Check()
+		mStatsLegacy.Check()
 	}
 	if appConfig.Features.EnableShutdown {
 		mShutdown.Check()
@@ -141,6 +159,12 @@ func onTrayReady() {
 	}
 	if appConfig.Features.EnableHibernate {
 		mHibernate.Check()
+	}
+	if appConfig.Features.EnableMedia {
+		mMedia.Check()
+	}
+	if appConfig.Features.EnableProcesses {
+		mProcesses.Check()
 	}
 
 	systray.AddSeparator()
@@ -171,7 +195,13 @@ func handleClicks() {
 			openGitHub()
 		case <-mConfig.ClickedCh:
 			openConfigFile()
-		case <-mStats.ClickedCh:
+		case <-mReloadConfig.ClickedCh:
+			reloadConfig()
+		case <-mSystem.ClickedCh:
+			toggleFeature("system")
+		case <-mUsage.ClickedCh:
+			toggleFeature("usage")
+		case <-mStatsLegacy.ClickedCh:
 			toggleFeature("stats")
 		case <-mShutdown.ClickedCh:
 			toggleFeature("shutdown")
@@ -181,6 +211,10 @@ func handleClicks() {
 			toggleFeature("sleep")
 		case <-mHibernate.ClickedCh:
 			toggleFeature("hibernate")
+		case <-mMedia.ClickedCh:
+			toggleFeature("media")
+		case <-mProcesses.ClickedCh:
+			toggleFeature("processes")
 		case <-mStartup.ClickedCh:
 			toggleStartup()
 		case <-mQuit.ClickedCh:
@@ -219,18 +253,123 @@ func startServer(cfg *config.Config) {
 	}()
 }
 
+func reloadConfig() {
+	log.Println("Reloading configuration...")
+
+	// Show loading/error icon during reload
+	updateTrayIconWithError()
+	mStatus.SetTitle("⟳ Reloading...")
+
+	// Stop current server
+	stopServer()
+
+	// Reload config from disk
+	cfg, err := config.Load()
+	if err != nil {
+		log.Printf("Failed to reload config: %v", err)
+		showError(fmt.Sprintf("Failed to reload config: %v", err))
+		// Restart with old config
+		startServer(appConfig)
+		updateTrayIcon()
+		mStatus.SetTitle(fmt.Sprintf("● Running on port %d", appConfig.Server.Port))
+		return
+	}
+
+	// Update global config
+	appConfig = cfg
+
+	// Update menu check states
+	updateMenuCheckStates()
+
+	// Start server with new config
+	startServer(appConfig)
+
+	// Restore normal icon
+	updateTrayIcon()
+	mStatus.SetTitle(fmt.Sprintf("● Running on port %d", appConfig.Server.Port))
+
+	log.Printf("Configuration reloaded. Server now running on port %d", appConfig.Server.Port)
+}
+
+func updateMenuCheckStates() {
+	// System/Usage toggles
+	if appConfig.Features.EnableSystem {
+		mSystem.Check()
+	} else {
+		mSystem.Uncheck()
+	}
+	if appConfig.Features.EnableUsage {
+		mUsage.Check()
+	} else {
+		mUsage.Uncheck()
+	}
+	if appConfig.Features.EnableStats {
+		mStatsLegacy.Check()
+	} else {
+		mStatsLegacy.Uncheck()
+	}
+
+	// Power toggles
+	if appConfig.Features.EnableShutdown {
+		mShutdown.Check()
+	} else {
+		mShutdown.Uncheck()
+	}
+	if appConfig.Features.EnableRestart {
+		mRestart.Check()
+	} else {
+		mRestart.Uncheck()
+	}
+	if appConfig.Features.EnableSleep {
+		mSleep.Check()
+	} else {
+		mSleep.Uncheck()
+	}
+	if appConfig.Features.EnableHibernate {
+		mHibernate.Check()
+	} else {
+		mHibernate.Uncheck()
+	}
+
+	// Experimental toggles
+	if appConfig.Features.EnableMedia {
+		mMedia.Check()
+	} else {
+		mMedia.Uncheck()
+	}
+	if appConfig.Features.EnableProcesses {
+		mProcesses.Check()
+	} else {
+		mProcesses.Uncheck()
+	}
+}
+
 func toggleFeature(feature string) {
 	if appConfig == nil {
 		return
 	}
 
 	switch feature {
+	case "system":
+		appConfig.Features.EnableSystem = !appConfig.Features.EnableSystem
+		if appConfig.Features.EnableSystem {
+			mSystem.Check()
+		} else {
+			mSystem.Uncheck()
+		}
+	case "usage":
+		appConfig.Features.EnableUsage = !appConfig.Features.EnableUsage
+		if appConfig.Features.EnableUsage {
+			mUsage.Check()
+		} else {
+			mUsage.Uncheck()
+		}
 	case "stats":
 		appConfig.Features.EnableStats = !appConfig.Features.EnableStats
 		if appConfig.Features.EnableStats {
-			mStats.Check()
+			mStatsLegacy.Check()
 		} else {
-			mStats.Uncheck()
+			mStatsLegacy.Uncheck()
 		}
 	case "shutdown":
 		appConfig.Features.EnableShutdown = !appConfig.Features.EnableShutdown
@@ -259,6 +398,20 @@ func toggleFeature(feature string) {
 			mHibernate.Check()
 		} else {
 			mHibernate.Uncheck()
+		}
+	case "media":
+		appConfig.Features.EnableMedia = !appConfig.Features.EnableMedia
+		if appConfig.Features.EnableMedia {
+			mMedia.Check()
+		} else {
+			mMedia.Uncheck()
+		}
+	case "processes":
+		appConfig.Features.EnableProcesses = !appConfig.Features.EnableProcesses
+		if appConfig.Features.EnableProcesses {
+			mProcesses.Check()
+		} else {
+			mProcesses.Uncheck()
 		}
 	}
 

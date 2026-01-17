@@ -36,7 +36,11 @@ type FeaturesConfig struct {
 	EnableRestart   bool `yaml:"enable_restart"`
 	EnableHibernate bool `yaml:"enable_hibernate"`
 	EnableSleep     bool `yaml:"enable_sleep"`
-	EnableStats     bool `yaml:"enable_stats"`
+	EnableSystem    bool `yaml:"enable_system"` // Static system info
+	EnableUsage     bool `yaml:"enable_usage"`  // Dynamic usage data
+	EnableStats     bool `yaml:"enable_stats"`  // Legacy combined endpoint
+	EnableMedia     bool `yaml:"enable_media"`
+	EnableProcesses bool `yaml:"enable_processes"`
 }
 
 type StatsConfig struct {
@@ -55,11 +59,15 @@ func DefaultConfig() *Config {
 			Hostname: "",
 		},
 		Features: FeaturesConfig{
-			EnableShutdown:  true,
-			EnableRestart:   true,
+			EnableShutdown:  false, // Disabled by default - Critical Action, allows remote shutdown!
+			EnableRestart:   false, // Disabled by default - Critical Action, allows remote restart!
 			EnableHibernate: true,
 			EnableSleep:     true,
-			EnableStats:     true,
+			EnableSystem:    true,
+			EnableUsage:     true,
+			EnableStats:     true, // Legacy endpoint
+			EnableMedia:     true,
+			EnableProcesses: true,
 		},
 		Stats: StatsConfig{
 			GpuEnabled:       true,

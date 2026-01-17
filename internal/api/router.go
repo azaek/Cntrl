@@ -31,11 +31,25 @@ func NewRouter(cfg *config.Config) http.Handler {
 	// Create handlers with config
 	statsHandler := NewStatsHandler(cfg)
 	powerHandler := NewPowerHandler(cfg)
+	mediaHandler := NewMediaHandler(cfg)
 
 	// Routes
 	r.Route("/api", func(r chi.Router) {
 		// Health check
 		r.Get("/status", StatusHandler) // StatusHandler handles GET /api/status
+
+		// Processes
+		r.Get("/processes", statsHandler.GetProcessList)
+
+		// New System Stats
+		r.Get("/system", statsHandler.GetSystemInfo)
+		r.Get("/usage", statsHandler.GetSystemUsage)
+
+		// Media
+		r.Route("/media", func(r chi.Router) {
+			r.Post("/control", mediaHandler.HandleControl)
+			r.Get("/status", mediaHandler.HandleStatus)
+		})
 
 		// Stats endpoints
 		r.Route("/stats", func(r chi.Router) {

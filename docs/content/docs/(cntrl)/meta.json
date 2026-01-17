@@ -1,0 +1,21 @@
+{
+    "title": "Cntrl Bridge",
+    "description": "The service app",
+    "icon": "Router",
+    "root": true,
+    "pages": [
+        "---Introduction---",
+        "index",
+        "---Getting Started---",
+        "setup",
+        "compatibility",
+        "---Reference---",
+        "api",
+        "---Configuration---",
+        "config",
+        "---Contributing---",
+        "contributing",
+        "---FAQ---",
+        "faq"
+    ]
+}

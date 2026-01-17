@@ -1,0 +1,105 @@
+---
+title: Media Control
+description: Control media playback and get now-playing info.
+icon: Headphones
+---
+
+<Callout type="warn" title="Experimental">
+    Media endpoints are **experimental** and may change in future versions.
+</Callout>
+
+The media endpoints allow you to control system-wide media playback and retrieve information about what's currently playing.
+
+## Endpoints
+
+| Method | Endpoint             | Description                          |
+| :----- | :------------------- | :----------------------------------- |
+| `GET`  | `/api/media/status`  | Get current media playback info.     |
+| `POST` | `/api/media/control` | Control media playback.              |
+
+---
+
+## Get Media Status
+
+Returns information about the currently playing media.
+
+### Request
+
+```bash title="Request"
+curl http://192.168.1.100:9990/api/media/status
+```
+
+### Response Schema
+
+```json title="Response"
+{
+    "status": "active",
+    "title": "Song Name",
+    "artist": "Artist Name"
+}
+```
+
+### Field Reference
+
+| Field    | Type   | Description                              |
+| :------- | :----- | :--------------------------------------- |
+| `status` | string | Current status (see values below).       |
+| `title`  | string | Current track title.                     |
+| `artist` | string | Current artist name.                     |
+
+### Status Values
+
+| Value     | Description                              |
+| :-------- | :--------------------------------------- |
+| `active`  | Media is playing or paused with metadata available. |
+| `idle`    | Session exists but no metadata.          |
+| `stopped` | No active media session.                 |
+
+<Callout type="info" title="Limitations">
+    On Windows, the status returns `"active"` for both playing and paused states.
+    Detecting exact play/pause state requires complex WinRT integration.
+</Callout>
+
+---
+
+## Control Media Playback
+
+Send commands to control media playback.
+
+### Request
+
+```bash
+curl -X POST http://192.168.1.100:9990/api/media/control \
+  -H "Content-Type: application/json" \
+  -d '{"action": "play"}'
+```
+
+### Request Body
+
+```json
+{
+    "action": "play"
+}
+```
+
+### Supported Actions
+
+| Action    | Description                              |
+| :-------- | :--------------------------------------- |
+| `play`    | Resume playback / Play.                  |
+| `pause`   | Pause playback.                          |
+| `next`    | Skip to next track.                      |
+| `prev`    | Go to previous track.                    |
+
+### Response
+
+```json
+{
+    "status": "ok"
+}
+```
+
+<Callout type="info" title="System-Wide Control">
+    Media controls work with any application that responds to system media keys,
+    including Spotify, Chrome, VLC, and more.
+</Callout>
