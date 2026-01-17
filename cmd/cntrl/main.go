@@ -1,3 +1,5 @@
+//go:build !darwin || cgo
+
 package main
 
 import (
@@ -7,21 +9,13 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"syscall"
 	"time"
-	"unsafe"
 
 	"github.com/getlantern/systray"
-	"golang.org/x/sys/windows"
 
 	"github.com/azaek/cntrl/internal/api"
 	"github.com/azaek/cntrl/internal/config"
 )
-
-// Global mutex handle to keep it alive for the duration of the app
-var mutexHandle windows.Handle
 
 //go:embed assets/*
 var assets embed.FS
@@ -36,17 +30,22 @@ var (
 
 // Tray menu items
 var (
-	mStatus    *systray.MenuItem
-	mGitHub    *systray.MenuItem
-	mConfig    *systray.MenuItem
-	mFeatures  *systray.MenuItem
-	mStats     *systray.MenuItem
-	mShutdown  *systray.MenuItem
-	mRestart   *systray.MenuItem
-	mSleep     *systray.MenuItem
-	mHibernate *systray.MenuItem
-	mStartup   *systray.MenuItem
-	mQuit      *systray.MenuItem
+	mStatus       *systray.MenuItem
+	mGitHub       *systray.MenuItem
+	mConfig       *systray.MenuItem
+	mReloadConfig *systray.MenuItem
+	mFeatures     *systray.MenuItem
+	mSystem       *systray.MenuItem
+	mUsage        *systray.MenuItem
+	mStatsLegacy  *systray.MenuItem
+	mShutdown     *systray.MenuItem
+	mRestart      *systray.MenuItem
+	mSleep        *systray.MenuItem
+	mHibernate    *systray.MenuItem
+	mMedia        *systray.MenuItem
+	mProcesses    *systray.MenuItem
+	mStartup      *systray.MenuItem
+	mQuit         *systray.MenuItem
 
 	appConfig *config.Config
 )
@@ -64,19 +63,14 @@ func main() {
 		}
 	}
 
-	// Single instance check using Windows Mutex
-	mutexNamePtr, _ := windows.UTF16PtrFromString("Local\\" + config.AppName + "_Lock")
-	var err error
-	mutexHandle, err = windows.CreateMutex(nil, false, mutexNamePtr)
-	if err != nil {
-		// Failed to create mutex
+	// Single instance check (platform-specific)
+	if !checkSingleInstance() {
 		return
 	}
-	if windows.GetLastError() == windows.ERROR_ALREADY_EXISTS {
-		showError(fmt.Sprintf("%s is already running.", config.AppName))
-		return
-	}
-	defer windows.CloseHandle(mutexHandle)
+	defer cleanupSingleInstance()
+
+	// Hide console window if needed (platform-specific)
+	hideConsoleWindow()
 
 	// Default: run tray app with embedded server
 	systray.Run(onTrayReady, onTrayExit)
@@ -109,7 +103,7 @@ func onTrayReady() {
 
 	// Set icon and title
 	updateTrayIcon()
-	systray.SetTitle(config.AppName)
+	systray.SetTitle(getTrayTitle()) // Empty on macOS, app name on Windows
 	systray.SetTooltip(config.AppName)
 
 	// Start the HTTP server with the shared config
@@ -128,20 +122,31 @@ func onTrayReady() {
 	// Quick actions
 	mGitHub = systray.AddMenuItem("View on GitHub", "Open repository in browser")
 	mConfig = systray.AddMenuItem("Open Config", "Edit configuration file")
+	mReloadConfig = systray.AddMenuItem("Reload Config", "Apply config changes (restarts server)")
 
 	systray.AddSeparator()
 
 	// Feature Toggles
 	mFeatures = systray.AddMenuItem("Features", "Enable or disable features")
-	mStats = mFeatures.AddSubMenuItem("Enable Stats", "Expose system statistics")
-	mShutdown = mFeatures.AddSubMenuItem("Enable Shutdown", "Allow remote shutdown")
-	mRestart = mFeatures.AddSubMenuItem("Enable Restart", "Allow remote restart")
+	mSystem = mFeatures.AddSubMenuItem("Enable System Info", "Static hardware info (/api/system)")
+	mUsage = mFeatures.AddSubMenuItem("Enable Usage Data", "Dynamic usage metrics (/api/usage)")
+	mStatsLegacy = mFeatures.AddSubMenuItem("Enable Stats (Legacy)", "Combined endpoint (/api/stats)")
+	mShutdown = mFeatures.AddSubMenuItem("Enable Shutdown", "⚠️ Critical Action! Allows remote shutdown")
+	mRestart = mFeatures.AddSubMenuItem("Enable Restart", "⚠️ Critical Action! Allows remote restart")
 	mSleep = mFeatures.AddSubMenuItem("Enable Sleep", "Allow remote sleep")
 	mHibernate = mFeatures.AddSubMenuItem("Enable Hibernate", "Allow remote hibernation")
+	mMedia = mFeatures.AddSubMenuItem("Enable Media (Experimental)", "Media playback control")
+	mProcesses = mFeatures.AddSubMenuItem("Enable Processes (Experimental)", "Process list endpoint")
 
 	// Set initial check states
+	if appConfig.Features.EnableSystem {
+		mSystem.Check()
+	}
+	if appConfig.Features.EnableUsage {
+		mUsage.Check()
+	}
 	if appConfig.Features.EnableStats {
-		mStats.Check()
+		mStatsLegacy.Check()
 	}
 	if appConfig.Features.EnableShutdown {
 		mShutdown.Check()
@@ -155,11 +160,17 @@ func onTrayReady() {
 	if appConfig.Features.EnableHibernate {
 		mHibernate.Check()
 	}
+	if appConfig.Features.EnableMedia {
+		mMedia.Check()
+	}
+	if appConfig.Features.EnableProcesses {
+		mProcesses.Check()
+	}
 
 	systray.AddSeparator()
 
 	// Startup toggle
-	mStartup = systray.AddMenuItem("Run at Startup", "Start automatically when Windows starts")
+	mStartup = systray.AddMenuItem("Run at Startup", "Start automatically when system starts")
 	if isInStartup() {
 		mStartup.Check()
 	}
@@ -184,7 +195,13 @@ func handleClicks() {
 			openGitHub()
 		case <-mConfig.ClickedCh:
 			openConfigFile()
-		case <-mStats.ClickedCh:
+		case <-mReloadConfig.ClickedCh:
+			reloadConfig()
+		case <-mSystem.ClickedCh:
+			toggleFeature("system")
+		case <-mUsage.ClickedCh:
+			toggleFeature("usage")
+		case <-mStatsLegacy.ClickedCh:
 			toggleFeature("stats")
 		case <-mShutdown.ClickedCh:
 			toggleFeature("shutdown")
@@ -194,6 +211,10 @@ func handleClicks() {
 			toggleFeature("sleep")
 		case <-mHibernate.ClickedCh:
 			toggleFeature("hibernate")
+		case <-mMedia.ClickedCh:
+			toggleFeature("media")
+		case <-mProcesses.ClickedCh:
+			toggleFeature("processes")
 		case <-mStartup.ClickedCh:
 			toggleStartup()
 		case <-mQuit.ClickedCh:
@@ -232,18 +253,123 @@ func startServer(cfg *config.Config) {
 	}()
 }
 
+func reloadConfig() {
+	log.Println("Reloading configuration...")
+
+	// Show loading/error icon during reload
+	updateTrayIconWithError()
+	mStatus.SetTitle("⟳ Reloading...")
+
+	// Stop current server
+	stopServer()
+
+	// Reload config from disk
+	cfg, err := config.Load()
+	if err != nil {
+		log.Printf("Failed to reload config: %v", err)
+		showError(fmt.Sprintf("Failed to reload config: %v", err))
+		// Restart with old config
+		startServer(appConfig)
+		updateTrayIcon()
+		mStatus.SetTitle(fmt.Sprintf("● Running on port %d", appConfig.Server.Port))
+		return
+	}
+
+	// Update global config
+	appConfig = cfg
+
+	// Update menu check states
+	updateMenuCheckStates()
+
+	// Start server with new config
+	startServer(appConfig)
+
+	// Restore normal icon
+	updateTrayIcon()
+	mStatus.SetTitle(fmt.Sprintf("● Running on port %d", appConfig.Server.Port))
+
+	log.Printf("Configuration reloaded. Server now running on port %d", appConfig.Server.Port)
+}
+
+func updateMenuCheckStates() {
+	// System/Usage toggles
+	if appConfig.Features.EnableSystem {
+		mSystem.Check()
+	} else {
+		mSystem.Uncheck()
+	}
+	if appConfig.Features.EnableUsage {
+		mUsage.Check()
+	} else {
+		mUsage.Uncheck()
+	}
+	if appConfig.Features.EnableStats {
+		mStatsLegacy.Check()
+	} else {
+		mStatsLegacy.Uncheck()
+	}
+
+	// Power toggles
+	if appConfig.Features.EnableShutdown {
+		mShutdown.Check()
+	} else {
+		mShutdown.Uncheck()
+	}
+	if appConfig.Features.EnableRestart {
+		mRestart.Check()
+	} else {
+		mRestart.Uncheck()
+	}
+	if appConfig.Features.EnableSleep {
+		mSleep.Check()
+	} else {
+		mSleep.Uncheck()
+	}
+	if appConfig.Features.EnableHibernate {
+		mHibernate.Check()
+	} else {
+		mHibernate.Uncheck()
+	}
+
+	// Experimental toggles
+	if appConfig.Features.EnableMedia {
+		mMedia.Check()
+	} else {
+		mMedia.Uncheck()
+	}
+	if appConfig.Features.EnableProcesses {
+		mProcesses.Check()
+	} else {
+		mProcesses.Uncheck()
+	}
+}
+
 func toggleFeature(feature string) {
 	if appConfig == nil {
 		return
 	}
 
 	switch feature {
+	case "system":
+		appConfig.Features.EnableSystem = !appConfig.Features.EnableSystem
+		if appConfig.Features.EnableSystem {
+			mSystem.Check()
+		} else {
+			mSystem.Uncheck()
+		}
+	case "usage":
+		appConfig.Features.EnableUsage = !appConfig.Features.EnableUsage
+		if appConfig.Features.EnableUsage {
+			mUsage.Check()
+		} else {
+			mUsage.Uncheck()
+		}
 	case "stats":
 		appConfig.Features.EnableStats = !appConfig.Features.EnableStats
 		if appConfig.Features.EnableStats {
-			mStats.Check()
+			mStatsLegacy.Check()
 		} else {
-			mStats.Uncheck()
+			mStatsLegacy.Uncheck()
 		}
 	case "shutdown":
 		appConfig.Features.EnableShutdown = !appConfig.Features.EnableShutdown
@@ -273,6 +399,20 @@ func toggleFeature(feature string) {
 		} else {
 			mHibernate.Uncheck()
 		}
+	case "media":
+		appConfig.Features.EnableMedia = !appConfig.Features.EnableMedia
+		if appConfig.Features.EnableMedia {
+			mMedia.Check()
+		} else {
+			mMedia.Uncheck()
+		}
+	case "processes":
+		appConfig.Features.EnableProcesses = !appConfig.Features.EnableProcesses
+		if appConfig.Features.EnableProcesses {
+			mProcesses.Check()
+		} else {
+			mProcesses.Uncheck()
+		}
 	}
 
 	// Save and restart (routing is static, needs restart to apply toggles)
@@ -297,25 +437,14 @@ func stopServer() {
 
 // ============== STARTUP MANAGEMENT ==============
 
-func getStartupShortcutPath() string {
-	appData := os.Getenv("APPDATA")
-	return filepath.Join(appData, "Microsoft", "Windows", "Start Menu", "Programs", "Startup", config.AppName+".lnk")
-}
-
-func isInStartup() bool {
-	shortcutPath := getStartupShortcutPath()
-	_, err := os.Stat(shortcutPath)
-	return err == nil
-}
-
 func toggleStartup() {
 	if isInStartup() {
 		// Remove from startup
-		os.Remove(getStartupShortcutPath())
+		removeFromStartup()
 		mStartup.Uncheck()
 	} else {
 		// Add to startup
-		if err := createShortcut(); err != nil {
+		if err := addToStartup(); err != nil {
 			showError(fmt.Sprintf("Failed to add to startup: %v", err))
 			return
 		}
@@ -324,33 +453,10 @@ func toggleStartup() {
 	updateTrayIcon()
 }
 
-func createShortcut() error {
-	exePath, err := os.Executable()
-	if err != nil {
-		return err
-	}
-	exePath, _ = filepath.Abs(exePath)
-
-	shortcutPath := getStartupShortcutPath()
-
-	// Use PowerShell to create shortcut
-	script := fmt.Sprintf(`
-		$WshShell = New-Object -ComObject WScript.Shell
-		$Shortcut = $WshShell.CreateShortcut('%s')
-		$Shortcut.TargetPath = '%s'
-		$Shortcut.WorkingDirectory = '%s'
-		$Shortcut.Save()
-	`, shortcutPath, exePath, filepath.Dir(exePath))
-
-	cmd := exec.Command("powershell", "-Command", script)
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	return cmd.Run()
-}
-
 // ============== UTILITIES ==============
 
 func openGitHub() {
-	exec.Command("cmd", "/c", "start", config.AppURL).Start()
+	openURL(config.AppURL)
 }
 
 func openConfigFile() {
@@ -361,15 +467,7 @@ func openConfigFile() {
 	}
 	// Create if not exists
 	config.CreateDefaultConfig()
-	exec.Command("cmd", "/c", "start", configPath).Start()
-}
-
-func showError(message string) {
-	user32 := syscall.NewLazyDLL("user32.dll")
-	messageBoxW := user32.NewProc("MessageBoxW")
-	title, _ := syscall.UTF16PtrFromString(config.AppName)
-	text, _ := syscall.UTF16PtrFromString(message)
-	messageBoxW.Call(0, uintptr(unsafe.Pointer(text)), uintptr(unsafe.Pointer(title)), 0x10)
+	openFile(configPath)
 }
 
 // ============== TRAY ICON ==============

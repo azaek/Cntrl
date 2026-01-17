@@ -36,7 +36,11 @@ type FeaturesConfig struct {
 	EnableRestart   bool `yaml:"enable_restart"`
 	EnableHibernate bool `yaml:"enable_hibernate"`
 	EnableSleep     bool `yaml:"enable_sleep"`
-	EnableStats     bool `yaml:"enable_stats"`
+	EnableSystem    bool `yaml:"enable_system"` // Static system info
+	EnableUsage     bool `yaml:"enable_usage"`  // Dynamic usage data
+	EnableStats     bool `yaml:"enable_stats"`  // Legacy combined endpoint
+	EnableMedia     bool `yaml:"enable_media"`
+	EnableProcesses bool `yaml:"enable_processes"`
 }
 
 type StatsConfig struct {
@@ -55,11 +59,15 @@ func DefaultConfig() *Config {
 			Hostname: "",
 		},
 		Features: FeaturesConfig{
-			EnableShutdown:  true,
-			EnableRestart:   true,
+			EnableShutdown:  false, // Disabled by default - Critical Action, allows remote shutdown!
+			EnableRestart:   false, // Disabled by default - Critical Action, allows remote restart!
 			EnableHibernate: true,
 			EnableSleep:     true,
-			EnableStats:     true,
+			EnableSystem:    true,
+			EnableUsage:     true,
+			EnableStats:     true, // Legacy endpoint
+			EnableMedia:     true,
+			EnableProcesses: true,
 		},
 		Stats: StatsConfig{
 			GpuEnabled:       true,
@@ -68,20 +76,15 @@ func DefaultConfig() *Config {
 	}
 }
 
-// GetConfigPath returns the path to the config file in APPDATA
+// GetConfigPath returns the path to the config file in the user's config directory
 func GetConfigPath() (string, error) {
-	appData := os.Getenv("APPDATA")
-	if appData == "" {
-		// Fallback to user home directory
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		appData = filepath.Join(home, "AppData", "Roaming")
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
 	}
 
-	configDir := filepath.Join(appData, AppName)
-	return filepath.Join(configDir, "config.yaml"), nil
+	appConfigDir := filepath.Join(configDir, AppName)
+	return filepath.Join(appConfigDir, "config.yaml"), nil
 }
 
 // EnsureConfigDir creates the config directory if it doesn't exist

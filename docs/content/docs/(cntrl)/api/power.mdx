@@ -1,0 +1,77 @@
+---
+title: Power Control
+description: Control system power state remotely.
+icon: Power
+---
+
+The power endpoints allow you to remotely control your computer's power state, including shutdown, restart, sleep, and hibernate.
+
+## Endpoints
+
+| Method | Endpoint            | Description                       |
+| :----- | :------------------ | :-------------------------------- |
+| `POST` | `/api/pw/shutdown`  | Initiates a system shutdown.      |
+| `POST` | `/api/pw/restart`   | Initiates a system restart.       |
+| `POST` | `/api/pw/sleep`     | Puts the system into sleep mode.  |
+| `POST` | `/api/pw/hibernate` | Puts the system into hibernation. |
+
+<Callout type="info" title="Response Timing">
+    Power commands return a success response **before** the system action is
+    triggered. This ensures the remote client receives confirmation before
+    the connection is lost.
+</Callout>
+
+## Example Requests
+
+### Shutdown
+
+```bash title="Request"
+curl -X POST http://192.168.1.100:9990/api/pw/shutdown
+```
+
+### Restart
+
+```bash title="Request"
+curl -X POST http://192.168.1.100:9990/api/pw/restart
+```
+
+### Sleep
+
+```bash title="Request"
+curl -X POST http://192.168.1.100:9990/api/pw/sleep
+```
+
+### Hibernate
+
+```bash title="Request"
+curl -X POST http://192.168.1.100:9990/api/pw/hibernate
+```
+
+## Response
+
+All power endpoints return the same success response:
+
+```json title="Response"
+{
+    "status": "ok",
+    "message": "Command initiated"
+}
+```
+
+## Configuration
+
+Power commands can be enabled or disabled in your `config.yaml`:
+
+```yaml title="config.yaml"
+features:
+  ...
+  enable_sleep: true  # Enable sleep/hibernate commands
+  enable_restart: true  # Enable restart commands
+  enable_shutdown: true  # Enable shutdown commands
+  enable_hibernate: true  # Enable hibernate commands
+```
+
+<Callout type="warn" title="Security">
+    These endpoints perform system-level actions. Ensure your Cntrl server
+    is only accessible on your trusted local network.
+</Callout>

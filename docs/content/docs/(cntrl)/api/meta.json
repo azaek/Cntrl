@@ -1,0 +1,6 @@
+{
+    "title": "API Reference",
+    "icon": "Terminal",
+    "defaultOpen": true,
+    "pages": ["index", "system", "usage", "power", "media", "processes"]
+}

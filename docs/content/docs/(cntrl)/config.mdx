@@ -1,0 +1,67 @@
+---
+title: Configuration
+description: Customize Cntrl to fit your needs.
+icon: Settings
+---
+
+Cntrl uses a simple `config.yaml` file to store your settings. You can open this file directly by right-clicking the tray icon and selecting **Open Config**.
+
+## File Location
+
+The configuration file is stored in your user's standard config folder:
+
+- **Windows**: `%APPDATA%\Cntrl\config.yaml`
+- **macOS**: `~/Library/Application Support/Cntrl/config.yaml`
+
+## Structure
+
+Here is a breakdown of the standard configuration options:
+
+```yaml title="config.yaml"
+server:
+    host: "0.0.0.0" # Listen on all network interfaces
+    port: 9990 # The HTTP port for the API
+
+display:
+    hostname: "MY-PC" # Custom hostname displayed in API responses
+
+features:
+    enable_system: true     # /api/system (static info)
+    enable_usage: true      # /api/usage (dynamic usage)
+    enable_stats: true      # /api/stats (legacy, deprecated)
+    enable_shutdown: false  # ⚠️ Critical - disabled by default
+    enable_restart: false   # ⚠️ Critical - disabled by default
+    enable_sleep: true      # /api/pw/sleep
+    enable_hibernate: true  # /api/pw/hibernate
+    enable_media: true      # /api/media/* (experimental)
+    enable_processes: true  # /api/processes (experimental)
+
+stats:
+    gpu_enabled: true       # Enable GPU detection (NVIDIA, AMD, Intel)
+    disk_cache_seconds: 60  # How long to cache disk stats
+```
+
+### Server Settings
+
+-   **`host`**: By default, this is set to `0.0.0.0` so other devices on your network can reach the API. If you only want local access on the PC itself, change it to `127.0.0.1`.
+-   **`port`**: The port number. If you change this, remember to update any remote dashboards or phone apps that connect to Cntrl.
+
+### Feature Toggles
+
+You can enable or disable specific parts of the API.
+
+-   If a feature is set to `false`, the corresponding API endpoint will return a `403 Forbidden` error.
+-   You can also toggle these features instantly via the **Features** menu in the system tray.
+
+<Callout type="info" title="Changes made in the Tray Menu are automatically saved to the configuration file."></Callout>
+
+## Applying Changes
+
+After editing the config file manually, you have two options:
+
+1. **Restart the app** - Close and reopen Cntrl
+2. **Use Reload Config** - Right-click the tray icon → **Reload Config**
+
+<Callout type="tip" title="Reload Config">
+The **Reload Config** option is the fastest way to apply changes like port updates without restarting the entire application. The tray icon may briefly show an error/loading state while the server restarts.
+</Callout>

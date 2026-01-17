@@ -1,0 +1,73 @@
+---
+title: Introduction
+description: A simple remote management bridge for your local machines.
+icon: Album
+---
+
+<img src="https://github.com/azaek/cntrl/blob/main/github.png?raw=true" alt="Cover" className="hidden dark:block" />
+<img src="https://github.com/azaek/cntrl/blob/main/github-light.png?raw=true" alt="Cover" className="block dark:hidden" />
+
+Welcome to **Cntrl**.
+
+Cntrl is a lightweight tool built to provide a quick way to check your PC stats or perform power actions from your phone while you're away from your desk. It runs on **Windows** and **macOS**.
+
+It was designed for personal use and for people who enjoy building their own dashboards or remote control setups.
+
+### Philosophy
+
+-   **Lightweight**: No heavy runtimes, just a single binary.
+-   **Transparent**: What you see in the tray is what is running. No hidden services.
+
+### Key Features
+
+-   **System Monitoring**: Access CPU load, GPU temperature, RAM usage, and Disk space via a simple JSON API.
+-   **Power Management**: Remotely Shutdown, Restart, or put your computer to Sleep.
+-   **Cross-Platform**: Runs on Windows and macOS (Intel & Apple Silicon).
+-   **Native Experience**: Professional system tray app with embedded icons and single-instance locking.
+-   **Easy Setup**: Interactive installer on Windows, drag-and-drop DMG on macOS.
+
+<Callout type="warn" title="No Built-in Authentication">
+**Cntrl has no built-in authentication or encryption.** It is designed to be used **exclusively within your local home network**.
+
+DO NOT expose this port to the public internet.
+
+DO NOT use port forwarding on your router for this application.
+
+We provide no guarantee of protection or security. Use it at your own risk.
+
+</Callout>
+
+## Next Steps
+
+<Cards>
+    <Card
+        title="Quick Setup"
+        href="/docs/setup"
+        description="How to get Cntrl running on your PC."
+        icon={<Icon name="Zap" />}
+    />
+    <Card
+        title="Configuration"
+        href="/docs/config"
+        description="Deep dive into the settings file."
+        icon={<Icon name="Settings" />}
+    />
+    <Card
+        title="API Reference"
+        href="/docs/api"
+        description="Explore the available endpoints."
+        icon={<Icon name="Code" />}
+    />
+    <Card
+        title="Contributing"
+        href="/docs/contributing"
+        description="How to help improve the project."
+        icon={<Icon name="Users" />}
+    />
+    <Card
+        title="FAQ"
+        href="/docs/faq"
+        description="Common questions and use cases."
+        icon={<Icon name="MessageCircleQuestionMark" />}
+    />
+</Cards>

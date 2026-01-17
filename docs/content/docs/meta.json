@@ -1,12 +1,3 @@
 {
-    "pages": [
-        "---Getting Started---",
-        "index",
-        "setup",
-        "---Reference---",
-        "api",
-        "config",
-        "contributing",
-        "faq"
-    ]
+    "pages": ["(cntrl)", "hub"]
 }

@@ -1,0 +1,97 @@
+---
+title: System Info
+description: Get static hardware information about the system.
+icon: MonitorCog
+---
+
+The `/api/system` endpoint returns static system information that rarely changes, such as CPU model, GPU specs, and total RAM.
+
+## Endpoint
+
+| Method | URL           |
+| :----- | :------------ |
+| `GET`  | `/api/system` |
+
+## Example Request
+
+```bash title="Request"
+curl http://192.168.1.100:9990/api/system
+```
+
+## Response Schema
+
+```json title="Response"
+{
+    "hostname": "MY-GAMING-PC",
+    "platform": "win32",
+    "cpu": {
+        "manufacturer": "Intel",
+        "brand": "Core™ i9-14900K",
+        "cores": 32,
+        "physicalCores": 24,
+        "baseSpeed": 3.2
+    },
+    "gpu": {
+        "vendor": "NVIDIA",
+        "model": "NVIDIA GeForce RTX 4070 Ti SUPER",
+        "vram": 16384
+    },
+    "memory": {
+        "total": 34268311552
+    },
+    "disks": [
+        {
+            "fs": "C:",
+            "type": "NTFS",
+            "size": 1024000000000,
+            "mount": "C:"
+        }
+    ]
+}
+```
+
+## Field Reference
+
+### Root Object
+
+| Field      | Type     | Description                              |
+| :--------- | :------- | :--------------------------------------- |
+| `hostname` | string   | Computer name (configurable in config).  |
+| `platform` | string   | Always `"win32"` on Windows, `"darwin"` on macOS. |
+| `cpu`      | object   | CPU specifications.                      |
+| `gpu`      | object   | GPU specifications (null if not detected). |
+| `memory`   | object   | RAM information.                         |
+| `disks`    | array    | List of disk drives.                     |
+
+### CPU Object
+
+| Field           | Type   | Description                    |
+| :-------------- | :----- | :----------------------------- |
+| `manufacturer`  | string | CPU manufacturer (e.g., "Intel", "AMD"). |
+| `brand`         | string | Full CPU name.                 |
+| `cores`         | int    | Total logical cores.           |
+| `physicalCores` | int    | Physical core count.           |
+| `baseSpeed`     | float  | Base clock speed in GHz.       |
+
+### GPU Object
+
+| Field    | Type   | Description                    |
+| :------- | :----- | :----------------------------- |
+| `vendor` | string | GPU vendor (e.g., "NVIDIA", "AMD"). |
+| `model`  | string | Full GPU model name.           |
+| `vram`   | int    | Video RAM in MB.               |
+
+### Memory Object
+
+| Field   | Type | Description              |
+| :------ | :--- | :----------------------- |
+| `total` | int  | Total RAM in bytes.      |
+
+### Disk Object
+
+| Field   | Type   | Description              |
+| :------ | :----- | :----------------------- |
+| `fs`    | string | Filesystem identifier (e.g., "C:"). |
+| `type`  | string | Filesystem type (e.g., "NTFS", "APFS"). |
+| `size`  | int    | Total size in bytes.     |
+| `mount` | string | Mount point.             |
