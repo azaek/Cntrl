@@ -36,32 +36,32 @@ builds:
               - '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion={{.Version}} /DMyNumericVersion={{.Major}}.{{.Minor}}.{{.Patch}}.0 Cntrl.iss'
 
     # macOS build for Intel
-    - id: darwin-amd64
-      env:
-          - CGO_ENABLED=1
-      goos:
-          - darwin
-      goarch:
-          - amd64
-      main: ./cmd/cntrl
-      binary: Cntrl
-      ldflags:
-          - -s -w
-          - -X main.Version={{.Version}}
+    # - id: darwin-amd64
+    #   env:
+    #       - CGO_ENABLED=1
+    #   goos:
+    #       - darwin
+    #   goarch:
+    #       - amd64
+    #   main: ./cmd/cntrl
+    #   binary: Cntrl
+    #   ldflags:
+    #       - -s -w
+    #       - -X main.Version={{.Version}}
 
-    # macOS build for Apple Silicon
-    - id: darwin-arm64
-      env:
-          - CGO_ENABLED=1
-      goos:
-          - darwin
-      goarch:
-          - arm64
-      main: ./cmd/cntrl
-      binary: Cntrl
-      ldflags:
-          - -s -w
-          - -X main.Version={{.Version}}
+    # # macOS build for Apple Silicon
+    # - id: darwin-arm64
+    #   env:
+    #       - CGO_ENABLED=1
+    #   goos:
+    #       - darwin
+    #   goarch:
+    #       - arm64
+    #   main: ./cmd/cntrl
+    #   binary: Cntrl
+    #   ldflags:
+    #       - -s -w
+    #       - -X main.Version={{.Version}}
 
 archives:
     - id: portable-windows
