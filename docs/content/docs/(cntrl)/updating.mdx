@@ -1,0 +1,71 @@
+---
+title: Updating
+description: How to update Cntrl to the latest version.
+icon: RefreshCw
+---
+
+Cntrl does not currently have a built-in auto-update feature. To update to a new version, follow these steps:
+
+## Windows
+
+<Steps>
+<Step>
+### Close Cntrl
+Right-click the tray icon and select **Exit** to stop the running instance.
+</Step>
+
+<Step>
+### Download the new installer
+Get the latest `CntrlSetup.exe` from the [GitHub Releases](https://github.com/azaek/cntrl/releases) page.
+</Step>
+
+<Step>
+### Run the installer
+The new installer will automatically replace the old version. Your configuration file will be preserved.
+</Step>
+</Steps>
+
+<Callout type="info" title="Config is preserved">
+Your `config.yaml` in `%APPDATA%\Cntrl\` is **not** touched by the installer. All your settings will remain after updating.
+</Callout>
+
+---
+
+## macOS
+
+<Steps>
+<Step>
+### Quit Cntrl
+Click the tray icon and select **Exit**, or use `Cmd+Q` if the app is focused.
+</Step>
+
+<Step>
+### Delete the old app
+Drag `Cntrl.app` from your Applications folder to the Trash.
+</Step>
+
+<Step>
+### Download the new DMG
+Get the latest version from the [GitHub Releases](https://github.com/azaek/cntrl/releases) page.
+</Step>
+
+<Step>
+### Install the new version
+Open the DMG and drag `Cntrl.app` to your Applications folder.
+</Step>
+</Steps>
+
+<Callout type="info" title="Config is preserved">
+Your `config.yaml` in `~/Library/Application Support/Cntrl/` is **not** deleted when you remove the app. All your settings will remain after updating.
+</Callout>
+
+---
+
+## Checking Your Version
+
+To see which version you're running:
+
+1. Right-click the Cntrl tray icon
+2. The version is displayed in the menu (or run `Cntrl.exe version` in terminal)
+
+Compare with the [latest release](https://github.com/azaek/cntrl/releases/latest) to see if an update is available.
