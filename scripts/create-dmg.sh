@@ -1,5 +1,5 @@
 #!/bin/bash
-# Create a DMG installer for Cntrl
+# Create a styled DMG installer for Cntrl
 
 set -e
 
@@ -16,6 +16,7 @@ fi
 
 ARCH="${2:-universal}"
 APP_NAME="Cntrl"
+BACKGROUND_IMG="macos/dmg-background.png"
 
 # Map architecture to proper names
 case "${ARCH}" in
@@ -40,7 +41,8 @@ esac
 
 DMG_NAME="${APP_NAME}_${VERSION}_macOS_${ARCH_SUFFIX}"
 DMG_PATH="dist/${DMG_NAME}.dmg"
-VOLUME_NAME="${APP_NAME} ${VERSION} (${ARCH_SUFFIX})"
+DMG_TEMP_PATH="dist/${DMG_NAME}_temp.dmg"
+VOLUME_NAME="${APP_NAME}"
 
 # Check if app bundle exists
 if [ ! -d "${BUNDLE_PATH}" ]; then
@@ -55,14 +57,13 @@ if [ ! -d "${BUNDLE_PATH}" ]; then
     exit 1
 fi
 
-echo "Creating DMG installer for ${ARCH_SUFFIX}..."
+echo "Creating styled DMG installer for ${ARCH_SUFFIX}..."
 
 # Create dist directory
 mkdir -p dist
 
 # Create temporary DMG directory
 DMG_TEMP=$(mktemp -d)
-mkdir -p "${DMG_TEMP}/.background"
 
 # Copy app to temp directory (rename to Cntrl.app for cleaner install)
 cp -R "${BUNDLE_PATH}" "${DMG_TEMP}/${APP_NAME}.app"
@@ -70,20 +71,97 @@ cp -R "${BUNDLE_PATH}" "${DMG_TEMP}/${APP_NAME}.app"
 # Create Applications symlink for drag-and-drop install
 ln -s /Applications "${DMG_TEMP}/Applications"
 
-# Create the DMG
+# Copy background image
+if [ -f "${BACKGROUND_IMG}" ]; then
+    mkdir -p "${DMG_TEMP}/.background"
+    cp "${BACKGROUND_IMG}" "${DMG_TEMP}/.background/background.png"
+    HAS_BACKGROUND=true
+else
+    echo "⚠️  Warning: Background image not found at ${BACKGROUND_IMG}"
+    HAS_BACKGROUND=false
+fi
+
 echo "Packaging ${DMG_NAME}.dmg..."
 
 # Remove old DMG if exists
-rm -f "${DMG_PATH}"
+rm -f "${DMG_PATH}" "${DMG_TEMP_PATH}"
 
-# Create DMG using hdiutil
+# Create a read-write DMG first (needed for customization)
 hdiutil create -volname "${VOLUME_NAME}" \
     -srcfolder "${DMG_TEMP}" \
-    -ov -format UDZO \
-    "${DMG_PATH}"
+    -ov -format UDRW \
+    "${DMG_TEMP_PATH}"
+
+# Mount the DMG
+echo "Customizing DMG appearance..."
+MOUNT_DIR=$(hdiutil attach -readwrite -noverify "${DMG_TEMP_PATH}" | grep "/Volumes/${VOLUME_NAME}" | tail -1 | awk '{print $3}')
+
+if [ -z "${MOUNT_DIR}" ]; then
+    # Try alternate parsing
+    MOUNT_DIR="/Volumes/${VOLUME_NAME}"
+fi
+
+# Wait for mount
+sleep 2
+
+# Apply custom styling via AppleScript
+if [ "${HAS_BACKGROUND}" = true ]; then
+    osascript <<EOF
+tell application "Finder"
+    tell disk "${VOLUME_NAME}"
+        open
+        set current view of container window to icon view
+        set toolbar visible of container window to false
+        set statusbar visible of container window to false
+        set bounds of container window to {100, 100, 700, 500}
+        set viewOptions to the icon view options of container window
+        set arrangement of viewOptions to not arranged
+        set icon size of viewOptions to 80
+        set background picture of viewOptions to file ".background:background.png"
+        set position of item "${APP_NAME}.app" of container window to {160, 240}
+        set position of item "Applications" of container window to {440, 240}
+        close
+        open
+        update without registering applications
+        delay 2
+        close
+    end tell
+end tell
+EOF
+else
+    # Fallback: just position icons without background
+    osascript <<EOF
+tell application "Finder"
+    tell disk "${VOLUME_NAME}"
+        open
+        set current view of container window to icon view
+        set toolbar visible of container window to false
+        set statusbar visible of container window to false
+        set bounds of container window to {100, 100, 700, 500}
+        set viewOptions to the icon view options of container window
+        set arrangement of viewOptions to not arranged
+        set icon size of viewOptions to 80
+        set position of item "${APP_NAME}.app" of container window to {160, 240}
+        set position of item "Applications" of container window to {440, 240}
+        close
+        open
+        update without registering applications
+        delay 2
+        close
+    end tell
+end tell
+EOF
+fi
+
+# Unmount
+sync
+hdiutil detach "${MOUNT_DIR}" -quiet || hdiutil detach "${MOUNT_DIR}" -force
+
+# Convert to compressed read-only DMG
+hdiutil convert "${DMG_TEMP_PATH}" -format UDZO -o "${DMG_PATH}"
 
 # Cleanup
-rm -rf "${DMG_TEMP}"
+rm -rf "${DMG_TEMP}" "${DMG_TEMP_PATH}"
 
 echo ""
 echo "✅ DMG created successfully!"
