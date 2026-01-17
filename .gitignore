@@ -25,3 +25,8 @@ docs/node_modules/
 docs/.next/
 docs/out/
 .npm
+
+# macOS build artifacts (keep template Cntrl.app, ignore built binaries)
+macos/Cntrl-Intel.app/
+macos/Cntrl-AppleSilicon.app/
+macos/Cntrl.app/Contents/MacOS/Cntrl

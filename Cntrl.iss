@@ -74,18 +74,26 @@ begin
     'Feature Selection', 'Choose which features you want to enable by default.',
     'Select the features you want to be active after installation:',
     False, False);
-  FeaturePage.Add('Enable Stats (System monitoring)');
-  FeaturePage.Add('Enable Shutdown');
-  FeaturePage.Add('Enable Restart');
+  FeaturePage.Add('Enable System Info (/api/system)');
+  FeaturePage.Add('Enable Usage Data (/api/usage)');
+  FeaturePage.Add('Enable Stats - Legacy (/api/stats)');
+  FeaturePage.Add('Enable Shutdown (⚠️ Critical)');
+  FeaturePage.Add('Enable Restart (⚠️ Critical)');
   FeaturePage.Add('Enable Sleep');
   FeaturePage.Add('Enable Hibernate');
+  FeaturePage.Add('Enable Media Control (Experimental)');
+  FeaturePage.Add('Enable Processes (Experimental)');
   
-  { Default values }
-  FeaturePage.Values[0] := True;
-  FeaturePage.Values[1] := True;
-  FeaturePage.Values[2] := True;
-  FeaturePage.Values[3] := True;
-  FeaturePage.Values[4] := True;
+  { Default values - shutdown/restart disabled by default for safety }
+  FeaturePage.Values[0] := True;   { system }
+  FeaturePage.Values[1] := True;   { usage }
+  FeaturePage.Values[2] := True;   { stats legacy }
+  FeaturePage.Values[3] := False;  { shutdown - disabled by default }
+  FeaturePage.Values[4] := False;  { restart - disabled by default }
+  FeaturePage.Values[5] := True;   { sleep }
+  FeaturePage.Values[6] := True;   { hibernate }
+  FeaturePage.Values[7] := True;   { media }
+  FeaturePage.Values[8] := True;   { processes }
 end;
 
 function BoolToStr(B: Boolean): String;
@@ -113,16 +121,20 @@ begin
       ConfigLines.Add('  host: ""');
       ConfigLines.Add('  port: ' + ConfigPage.Values[0]);
       ConfigLines.Add('display:');
-      ConfigLines.Add('  hostname: "ROG-PC"');
+      ConfigLines.Add('  hostname: ""');
+      ConfigLines.Add('features:');
+      ConfigLines.Add('  enable_system: ' + BoolToStr(FeaturePage.Values[0]));
+      ConfigLines.Add('  enable_usage: ' + BoolToStr(FeaturePage.Values[1]));
+      ConfigLines.Add('  enable_stats: ' + BoolToStr(FeaturePage.Values[2]));
+      ConfigLines.Add('  enable_shutdown: ' + BoolToStr(FeaturePage.Values[3]));
+      ConfigLines.Add('  enable_restart: ' + BoolToStr(FeaturePage.Values[4]));
+      ConfigLines.Add('  enable_sleep: ' + BoolToStr(FeaturePage.Values[5]));
+      ConfigLines.Add('  enable_hibernate: ' + BoolToStr(FeaturePage.Values[6]));
+      ConfigLines.Add('  enable_media: ' + BoolToStr(FeaturePage.Values[7]));
+      ConfigLines.Add('  enable_processes: ' + BoolToStr(FeaturePage.Values[8]));
       ConfigLines.Add('stats:');
       ConfigLines.Add('  gpu_enabled: true');
       ConfigLines.Add('  disk_cache_seconds: 60');
-      ConfigLines.Add('features:');
-      ConfigLines.Add('  enable_stats: ' + BoolToStr(FeaturePage.Values[0]));
-      ConfigLines.Add('  enable_shutdown: ' + BoolToStr(FeaturePage.Values[1]));
-      ConfigLines.Add('  enable_restart: ' + BoolToStr(FeaturePage.Values[2]));
-      ConfigLines.Add('  enable_sleep: ' + BoolToStr(FeaturePage.Values[3]));
-      ConfigLines.Add('  enable_hibernate: ' + BoolToStr(FeaturePage.Values[4]));
       
       ConfigLines.SaveToFile(ConfigPath);
     finally
@@ -130,3 +142,4 @@ begin
     end;
   end;
 end;
+
