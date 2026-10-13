@@ -11,6 +11,17 @@
 [![Release Bridge](https://github.com/azaek/cntrl/actions/workflows/release-bridge.yml/badge.svg)](https://github.com/azaek/cntrl/actions/workflows/release-bridge.yml)
 ![Ai-assisted](https://img.shields.io/badge/AI--assisted-262626)
 
+## Cntrl Console and the agent
+
+[Cntrl Console](https://console.cntrl.pw) shows your servers and devices live from anywhere, and lets you act on them. Each machine runs the open-source agent in [`crates/cntrl-agent`](./crates/cntrl-agent), written in Rust. It opens one TLS connection out to Console, so nothing on the machine listens and there's no port to forward.
+
+- **Try it:** [console.cntrl.pw](https://console.cntrl.pw), free for 3 machines with no card.
+- **Add a machine:** one command from Console, on Linux, macOS or Windows (beta). See [Add a device](https://www.cntrl.pw/docs/console/add-a-device).
+- **What Console can ask a machine to do:** every operation is in [`crates/cntrl-protocol/src/ops.rs`](./crates/cntrl-protocol/src/ops.rs), each behind a permission the machine's own policy grants. See [Permissions](https://www.cntrl.pw/docs/console/permissions).
+- **Signed commands:** a machine can require every change to be signed in a browser you trust, and checks the signature itself. See [Signed commands](https://www.cntrl.pw/docs/console/signed-commands) and [Security](https://www.cntrl.pw/docs/console/security).
+
+## Cntrl Bridge
+
 The programmable API for your desktop. Script your workspace with standard HTTP/WebSockets.
 
 ## Apps
