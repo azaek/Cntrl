@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 const LABEL =
@@ -29,6 +30,7 @@ export function ConsoleBanner({ phone = false }: { phone?: boolean }) {
                         className=""
                     />
                 </a>
+                <Demo className="mx-auto mt-2 flex max-w-90" />
             </div>
         );
     }
@@ -52,7 +54,21 @@ export function ConsoleBanner({ phone = false }: { phone?: boolean }) {
                     className="@max-lg:hidden"
                 />
             </a>
+            <Demo className="mt-2 inline-flex" />
         </div>
+    );
+}
+
+/** The demo (Console's D114): made-up machines, no account. */
+function Demo({ className }: { className: string }) {
+    return (
+        <a
+            href="https://try.cntrl.pw"
+            className={`text-fd-muted-foreground hover:text-fd-foreground focus-visible:outline-fd-ring items-center gap-1 text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${className}`}
+        >
+            Try the live demo, no account
+            <ArrowRight className="size-3.5" aria-hidden />
+        </a>
     );
 }
 
