@@ -1,4 +1,4 @@
-import { AuthorLink, Avatar } from "@/components/blog/author";
+import { AuthorLink } from "@/components/blog/author";
 import {
     AUTHOR,
     SITE_URL,
@@ -103,24 +103,21 @@ export default async function BlogPost(props: PageProps<"/blog/[slug]">) {
                     <p className="text-fd-muted-foreground mx-auto mt-5 max-w-[60ch] text-lg text-pretty md:text-xl">
                         {description}
                     </p>
-                    <div className="mt-8 inline-flex items-center gap-3 text-left text-sm">
-                        <Avatar size={36} />
-                        <div className="flex flex-col gap-0.5">
-                            <AuthorLink />
-                            <span className="text-fd-muted-foreground tabular-nums">
-                                <time dateTime={isoDate(post.data.date)}>
-                                    {formatDate(post.data.date)}
-                                </time>{" "}
-                                · {await readingMinutes(post)} min read
-                            </span>
-                        </div>
+                    <div className="mt-8 flex flex-col items-center gap-1 text-sm">
+                        <AuthorLink />
+                        <span className="text-fd-muted-foreground tabular-nums">
+                            <time dateTime={isoDate(post.data.date)}>
+                                {formatDate(post.data.date)}
+                            </time>{" "}
+                            · {await readingMinutes(post)} min read
+                        </span>
                     </div>
                 </header>
                 <div className="prose mx-auto mt-14 max-w-[68ch] md:text-[17px] md:[&_figure]:-mx-12 lg:[&_figure]:-mx-20">
                     <MDX components={getMDXComponents()} />
                 </div>
-                <footer className="mx-auto mt-20 flex max-w-[68ch] items-center gap-4 border-t pt-8">
-                    <Avatar size={44} />
+                {/* Its width in the prose's own size, so it lines up with the text. */}
+                <footer className="mx-auto mt-20 max-w-[68ch] border-t pt-8 md:text-[17px]">
                     <div className="flex flex-col gap-1 text-sm">
                         <AuthorLink />
                         <p className="text-fd-muted-foreground">{AUTHOR.bio}</p>

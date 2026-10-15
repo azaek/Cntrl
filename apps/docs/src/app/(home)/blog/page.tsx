@@ -1,4 +1,3 @@
-import { Avatar } from "@/components/blog/author";
 import {
     AUTHOR,
     SITE_URL,
@@ -86,10 +85,7 @@ export default async function BlogIndex() {
                 <p className="text-fd-muted-foreground mt-4 text-lg text-pretty">
                     {smarten(lead.data.description ?? "")}
                 </p>
-                <p className="mt-5 flex items-center gap-2 text-sm font-medium">
-                    <Avatar size={24} />
-                    {AUTHOR.name}
-                </p>
+                <p className="mt-5 text-sm font-medium">{AUTHOR.name}</p>
             </article>
             {rest.length > 0 && (
                 <section className="mt-16 md:mt-24">

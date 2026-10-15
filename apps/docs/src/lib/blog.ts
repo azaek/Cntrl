@@ -17,7 +17,6 @@ export const AUTHOR = {
     name: "AzaeK",
     handle: "datbugdied",
     url: "https://x.com/datbugdied",
-    avatar: "https://github.com/azaek.png",
     bio: "Builds cntrl, and writes up what breaks along the way.",
 } as const;
 
