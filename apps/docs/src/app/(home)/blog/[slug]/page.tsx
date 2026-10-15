@@ -113,7 +113,7 @@ export default async function BlogPost(props: PageProps<"/blog/[slug]">) {
                         </span>
                     </div>
                 </header>
-                <div className="prose mx-auto mt-14 max-w-[68ch] md:text-[17px] md:[&_figure]:-mx-12 lg:[&_figure]:-mx-20">
+                <div className="prose [&_figcaption]:text-fd-muted-foreground mx-auto mt-14 max-w-[68ch] md:text-[17px] [&_figcaption]:mt-3 [&_figcaption]:text-center [&_figcaption]:text-sm md:[&_figure]:-mx-12 lg:[&_figure]:-mx-20 [&_figure_img]:my-0 [&_figure_img]:inline-block [&_figure_img]:outline-1 [&_figure_img]:-outline-offset-1 [&_figure_img]:outline-black/10 dark:[&_figure_img]:outline-white/10 [&_figure:has(img)_p]:my-0 [&_figure:has(img)_p]:text-center">
                     <MDX components={getMDXComponents()} />
                 </div>
                 {/* Its width in the prose's own size, so it lines up with the text. */}

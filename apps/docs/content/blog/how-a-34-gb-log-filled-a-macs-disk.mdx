@@ -1,0 +1,149 @@
+---
+title: How a 34 GB log filled my Mac's disk, and how I found it
+description: On a macOS 27 beta, a background-task log on my Mac mini grew 3.5 GB a day for nine days, stuck in a loop. How I tracked it down, and how to check your Mac.
+date: 2026-10-16
+draft: false
+---
+
+My Mac mini has a 256 GB disk. On 11 October it had 70 GB free, which is fine until you want Xcode and a couple of iOS simulators. I went looking for space and expected to find old Docker images. I found those. I also found one macOS log file that had grown to 34 GB in nine days, and it was still growing.
+
+If Storage in System Settings shows a big System Data bar and nothing you delete makes it smaller, this may be happening on your Mac too. Here's how I tracked it down, with the commands to check yours. None of them need `sudo` until the fix.
+
+A caveat before you start. This Mac was on a developer beta of macOS 27, and a beta bug is the likeliest cause. On a release build you may never see this, but checking takes a minute.
+
+## System Data won't tell you
+
+Storage settings put whatever they can't sort into System Data, and they don't let you look inside. Cleanup apps empty caches, which wins back a few gigabytes and changes nothing if something keeps writing. Reinstalling macOS would work. It's also a lost afternoon for one file.
+
+What works is duller. Measure folders until the numbers add up.
+
+## Making the numbers add up
+
+Start with what the disk says. `df` and `du` count in binary gigabytes, so their numbers come out smaller than the ones System Settings shows.
+
+```bash
+df -h /System/Volumes/Data
+```
+
+```text
+Filesystem     Size   Used  Avail Capacity  Mounted on
+/dev/disk3s5  228Gi  126Gi   70Gi    65%    /System/Volumes/Data
+```
+
+Then your home folder, biggest first, and the same again inside whichever folder tops the list:
+
+```bash
+du -sh ~/* 2>/dev/null | sort -rh | head
+du -sh ~/Library/* 2>/dev/null | sort -rh | head
+```
+
+Mine pointed at Docker. Its disk image held 34 GB, mostly Rust build caches I could delete, and deleting them took free space from 70 GB to 99 GB. Everything else in my home folder was small. Far more space was in use than my folders explained, so I looked in the system's own folders, where System Data lives:
+
+```bash
+du -sh /private/var/db/* 2>/dev/null | sort -rh | head -5
+```
+
+```text
+ 34G	/private/var/db/powerlog
+2.5G	/private/var/db/diagnostics
+342M	/private/var/db/uuidtext
+120M	/private/var/db/KernelExtensionManagement
+ 97M	/private/var/db/systemstats
+```
+
+`powerlog` is where macOS keeps its power and energy history. Five days later the whole folder was 275 MB. On 11 October, one file in it was 34 GB:
+
+```bash
+cd /private/var/db/powerlog/Library/PerfPowerTelemetry
+du -sh */* 2>/dev/null | sort -rh | head -3
+```
+
+```text
+ 34G	BackgroundProcessing/CurrentBackgroundProcessingDB.BGSQL
+4.0M	BackgroundProcessing/CurrentBackgroundProcessingDB.BGSQL-wal
+2.1M	ExtendedPersistence/CurrentLog.EPSQL-wal
+```
+
+## What was writing it
+
+That file is a SQLite database. Anyone can read it, so you can open it read-only without `sudo`.
+
+Its biggest table, `BackgroundProcessing_TaskCheckpoint_24_5`, had 723,677,084 rows. Each row records a background task changing state while `dasd`, the macOS task scheduler, runs it. From the `BackgroundProcessing` folder, this shows which tasks wrote the newest 20,000:
+
+```bash
+cd BackgroundProcessing
+sqlite3 -readonly "file:CurrentBackgroundProcessingDB.BGSQL?mode=ro" "
+  select (select Name from BackgroundProcessing_TaskMetadata_24_5 m
+          where m.TaskID = c.TaskID limit 1) as task, count(*) as rows
+  from (select TaskID from BackgroundProcessing_TaskCheckpoint_24_5
+        order by rowid desc limit 20000) c
+  group by task order by rows desc limit 5;"
+```
+
+On a healthy Mac it's a mix of ordinary jobs. This is mine five days later:
+
+```text
+0:com.apple.CloudTelemetry.submitNearRealtimeActivity|2178
+501:com.apple.coreanalytics.analyticsagent.ambientlight|2090
+501:com.apple.coreanalytics.analyticsagent.location|1089
+501:com.apple.Safari.SafeBrowsing.BrowsingDatabases.Update|978
+501:com.apple.mediaanalysisd.photos.person|950
+```
+
+On 11 October it wasn't. Of the newest 200,000 rows, 199,859 came from two tasks, `com.apple.appstored.ArcadePostSummary` and `com.apple.appstored.ArcadePostPO`. Both belong to `appstoreagent`, the App Store's helper. Both had an interval of zero, so each ran again the moment it finished. `appstoreagent` sat at 148% CPU and `PerfPowerServices`, which writes the log, at 51%. Those two alone kept about two of the Mac mini's ten cores busy around the clock, on a machine I thought was idle.
+
+To see how fast your log is growing, in rows a second:
+
+```bash
+sqlite3 -readonly "file:CurrentBackgroundProcessingDB.BGSQL?mode=ro" "
+  select round(count(*) / (max(timestamp) - min(timestamp)), 2)
+  from (select timestamp from BackgroundProcessing_TaskCheckpoint_24_5
+        order by rowid desc limit 20000);"
+```
+
+Mine said about 700 that day. Five days later it said 0.15. If your table names end in something other than `_24_5`, run the same command with `.tables` in place of the query to list them.
+
+The log began at 1 a.m. on 2 October, when I set up the Mac, and the loop was running by that evening. It had been filling the disk at about 3.5 GB a day ever since.
+
+The Mac had been on a developer beta of macOS 27 (build 26A5368g) since I set it up. I can't prove the beta caused this, and I can't see why the two tasks got stuck. But the loop started with the beta, and it's been quiet since I moved to the release build. To check what you're running, use `sw_vers`. A build number that ends in a letter, like 26A5368g, is a beta.
+
+## What fixed it, and what didn't
+
+Quitting `appstoreagent` did nothing useful. macOS started a new copy, and the new log showed the same two tasks at about 600 rows a second. `dasd`, the scheduler that kept rerunning them, was at 98% CPU.
+
+Deleting the file didn't free the space either. macOS frees a deleted file's space only when the last process holding it open lets go, and something still held it. I never found out what, because `lsof` without `sudo` can't see it.
+
+A restart fixed both. When the Mac came back, the loop was gone. The log took 752 rows in its first ten minutes, spread across ordinary tasks, and the 34 GB was free again. Five days later, now on the release build of macOS 27.0.1, it's still quiet, and the file is 221 MB.
+
+If the same two tasks top your list:
+
+1. Delete that one file. It's macOS's record of background tasks for its energy reports, and macOS starts a new one. Leave the rest of the `powerlog` folder alone, `BatteryLife` included, since those are other logs.
+
+   ```bash
+   cd /private/var/db/powerlog/Library/PerfPowerTelemetry/BackgroundProcessing
+   sudo rm CurrentBackgroundProcessingDB.BGSQL*
+   ```
+
+2. Restart. That stopped the loop for me, and it releases the space.
+
+3. An hour later, run the rows-a-second query again. If it's back in the hundreds, try moving off the beta to a release build, or signing out of Media & Purchases in System Settings and back in. I didn't need either, so I can't promise they work.
+
+## Where cntrl comes in
+
+cntrl didn't find this. I found it in Terminal, once the disk ran short. But cntrl's agent had been on this Mac mini since 4 October, and the loop was on Console's CPU chart the whole time.
+
+<figure>
+
+![Console's CPU chart for the Mac mini over seven days: the average sits near 45% until the evening of 11 October, then drops to a few percent.](/blog/how-a-34-gb-log-filled-a-macs-disk/cpu-7-days.png)
+
+<figcaption>The Mac mini's CPU in Console, the seven days to 16 October.</figcaption>
+
+</figure>
+
+Each column is two hours. Its dark square is the average, and the light ones run from the lowest reading to the highest. Until the restart on 11 October, the average never fell below about 45%. After it, the average falls to a few percent, with bursts when there's real work.
+
+A machine that never goes quiet is worth a look. A Console rule for CPU above 40% for 60 minutes would have flagged this on the first day.
+
+cntrl can't look inside macOS's own databases, and it doesn't delete system files. It shows a machine's CPU, memory, disks and processes, now and over time, and alerts you when a reading stays over a line.
+
+If you'd like to see what that looks like, [try.cntrl.pw](https://try.cntrl.pw) has six made-up machines, no account needed.
