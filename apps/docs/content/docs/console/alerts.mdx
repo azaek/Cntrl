@@ -53,11 +53,11 @@ When a channel answers 429 or a 5xx, or doesn't answer within 15 seconds, the me
 
 ## On each plan
 
-|                     | Free    | Pro and Team        |
-| ------------------- | ------- | ------------------- |
-| Alert rules         | 1       | As many as you like |
-| Channels            | Email   | All                 |
-| Alerts sent a month | 30      | No limit            |
-| Alert history       | 7 days  | 90 days             |
+|                     | Free                  | Pro and Team        |
+| ------------------- | --------------------- | ------------------- |
+| Alert rules         | 1                     | As many as you like |
+| Channels            | Email and one ntfy    | All                 |
+| Alerts sent a month | 30                    | No limit            |
+| Alert history       | 7 days                | 90 days             |
 
-Free's one rule includes the ones Console makes, such as the offline rule every organization starts with. Past 30 alerts sent in a calendar month (UTC), alerts on Free still fire and show in Console, but no email goes out until the 1st. Older history isn't deleted, so upgrading brings it back.
+Free's one rule includes the ones Console makes, such as the offline rule every organization starts with. On Free, the ntfy channel you add joins your rule. After a downgrade, Free keeps the first ntfy channel made, and the other channels are [past the plan](/docs/console/people#past-a-plans-limits). Past 30 alerts sent in a calendar month (UTC), alerts on Free still fire and show in Console, but nothing goes out, by email or ntfy, until the 1st. Older history isn't deleted, so upgrading brings it back.
