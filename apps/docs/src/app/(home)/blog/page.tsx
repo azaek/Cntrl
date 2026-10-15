@@ -15,7 +15,7 @@ import { notFound } from "next/navigation";
 // The blog's index (D118, Editorial): the newest post leads, the rest follow
 // by date under "Earlier".
 
-const DESCRIPTION = "What we ran into running our own machines, and how we fixed it.";
+const DESCRIPTION = "Real problems on real machines, and how to fix them.";
 
 export const metadata: Metadata = {
     title: "Blog",

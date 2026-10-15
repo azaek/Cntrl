@@ -24,9 +24,7 @@ export async function GET(_req: Request, { params }: RouteContext<"/og/blog/[...
     const post = slug.length > 1 ? getPost(slug[0]!) : undefined;
     if (slug.length > 1 && !post) notFound();
     const title = post ? smarten(post.data.title) : "Blog";
-    const subtitle = post
-        ? null
-        : "What we ran into running our own machines, and how we fixed it.";
+    const subtitle = post ? null : "Real problems on real machines, and how to fix them.";
     const footer = post
         ? `${AUTHOR.name} @${AUTHOR.handle} \u00b7 ${formatDate(post.data.date)}`
         : `${AUTHOR.name} @${AUTHOR.handle}`;

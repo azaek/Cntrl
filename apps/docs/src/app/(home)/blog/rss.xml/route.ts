@@ -34,7 +34,7 @@ export function GET() {
 <channel>
 <title>Cntrl blog</title>
 <link>${SITE_URL}/blog</link>
-<description>What we ran into running our own machines, and how we fixed it.</description>
+<description>Real problems on real machines, and how to fix them.</description>
 <language>en</language>
 <atom:link href="${SITE_URL}/blog/rss.xml" rel="self" type="application/rss+xml"/>
 ${posts[0] ? `<lastBuildDate>${posts[0].data.date.toUTCString()}</lastBuildDate>\n` : ""}${items}
