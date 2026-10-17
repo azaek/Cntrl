@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 const LABEL =
-    "Cntrl Console: manage your servers and devices from anywhere, no VPN and no open ports. Explore Console.";
+    "Cntrl Console: manage your machines from anywhere, no VPN and no open ports. Explore Console.";
 
 /**
  * The cards lab's cards (console's brand/launch-cards), each 236 wide: the

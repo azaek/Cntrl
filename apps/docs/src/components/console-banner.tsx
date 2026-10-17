@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 const LABEL =
-    "Cntrl Console: manage your servers and devices from anywhere, no VPN and no open ports. Explore Console.";
+    "Cntrl Console: manage your machines from anywhere, no VPN and no open ports. Explore Console.";
 
 /**
  * Cntrl Console on the home page. From 640 px it's above Bridge's words,
