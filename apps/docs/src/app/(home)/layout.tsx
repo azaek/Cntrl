@@ -89,7 +89,7 @@ export default function Layout({ children }: LayoutProps<"/">) {
                                     </div>
                                     <p className="font-medium">Cntrl Console</p>
                                     <p className="text-fd-muted-foreground text-sm">
-                                        Reach your servers and devices from anywhere.
+                                        Reach your machines from anywhere.
                                     </p>
                                 </NavbarMenuLink>
                                 <NavbarMenuLink href="/docs" className="md:row-span-2">
